@@ -1,0 +1,29 @@
+{
+  "scripts": {
+    "start": "webpack-dev-server --progress --hot --port 3040 --open",
+    "build": "webpack -p"
+  },
+  "dependencies": {
+    "@types/d3": "^4.9.0",
+    "@types/d3-scale-chromatic": "^1.0.2",
+    "@types/react": "^15.0.35",
+    "@types/react-dom": "^15.5.1",
+    "d3": "^4.9.1",
+    "d3-scale-chromatic": "^1.1.1",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1"
+  },
+  "name": "d3-starting",
+  "version": "1.0.0",
+  "main": "index.tsx",
+  "license": "MIT",
+  "devDependencies": {
+    "awesome-typescript-loader": "^3.2.1",
+    "css-loader": "^0.28.4",
+    "source-map-loader": "^0.2.1",
+    "style-loader": "^0.18.2",
+    "typescript": "^2.4.1",
+    "webpack": "^3.1.0",
+    "webpack-dev-server": "^2.5.1"
+  }
+}
