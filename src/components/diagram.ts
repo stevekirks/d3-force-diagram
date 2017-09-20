@@ -15,7 +15,7 @@ export function load() {
         .html("Loading. This shouldn't take more than a few seconds...");
 
     // Load the data
-    d3.json('./data/services', (error, response: {nodes: Node[], links: Link[]}) => {
+    d3.json('./data/services.json', (error, response: {nodes: Node[], links: Link[]}) => {
         if (!error) {
             nodes = response.nodes;
             links = response.links;
