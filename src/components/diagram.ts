@@ -160,25 +160,23 @@ function updateGraph() {
         .remove();
     const defaultLinkStrokeWidth = 1.5;
     let linkEnterElements = linkElements.enter().append("line")
-            .style("stroke-width", defaultLinkStrokeWidth)
-            .style("stroke", function (d) {
-                return "url(#" + utils.getLinkGradientId(d) + ")";
-            });
+        .attr("stroke-width", defaultLinkStrokeWidth)
+        .attr("stroke", function (d) {
+            return "url(#" + utils.getLinkGradientId(d) + ")";
+        });
     linkEnterElements
-            .on("mouseover", function (d, i) { // function (not lambda) is reqd for 'this'
-                let linkEl = d3.select(this);
-                linkEl.attr("stroke-width", 5);
-                //tooltip.Show(linkEl, 'wadddddd up');
-            })
-            .on("mouseout", function (d, i) {
-                d3.select(this)
-                    .attr("stroke-width", defaultLinkStrokeWidth);
-                //tooltip.Hide();
-            })
-            .on('click', PopulateInfoBox)
-            .style("stroke-opacity", 1e-6)
-            .transition(utils.transitionLinearSecond)
-            .style("stroke-opacity", 1);
+        .on("mouseover", function (d, i) { // note function (not lambda) is reqd for 'this'
+            d3.select(this).attr("stroke-width", defaultLinkStrokeWidth * 3);
+            //tooltip.Show(d3.select(this), 'wadddddd up');
+        })
+        .on("mouseout", function (d, i) {
+            d3.select(this).attr("stroke-width", defaultLinkStrokeWidth);
+            //tooltip.Hide();
+        })
+        .on('click', PopulateInfoBox)
+        .style("stroke-opacity", 1e-6)
+        .transition(utils.transitionLinearSecond)
+        .style("stroke-opacity", 1);
     linkElements = linkEnterElements.merge(linkElements);
 
     nodeElements.exit()
