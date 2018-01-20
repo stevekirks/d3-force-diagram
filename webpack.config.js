@@ -11,6 +11,12 @@ module.exports = (env) => {
         disable: isDevBuild
     });
 
+    // Environment Variables
+    const definePlugin = new webpack.DefinePlugin({
+        "__DATA_SERVICES_URL__": JSON.stringify(isDevBuild ? './data/services.json' : 'data/services'),
+        'process.env.NODE_ENV': JSON.stringify(isDevBuild ? 'development' : 'production')
+    });
+
     return {
         entry: "./src/index.tsx",
         output: {
@@ -41,12 +47,11 @@ module.exports = (env) => {
             ]
         },
         plugins: isDevBuild ? [
-            extractSass
+            extractSass,
+            definePlugin
         ] : [
             extractSass,
-            new webpack.DefinePlugin({
-                'process.env.NODE_ENV': JSON.stringify('production')
-            }),
+            definePlugin,
             new webpack.optimize.UglifyJsPlugin()
         ]
     }

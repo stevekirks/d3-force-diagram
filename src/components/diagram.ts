@@ -5,6 +5,7 @@ import * as utils from './utils/utils';
 import * as searchUtils from './utils/search-matching';
 import { Link, Node, Hull } from './data-interfaces';
 import Tooltip from './utils/tooltip';
+declare var __DATA_SERVICES_URL__: string;
 
 export function load() {
 
@@ -17,7 +18,7 @@ export function load() {
         .html("Loading. This shouldn't take more than a few seconds...");
 
     // Load the data
-    d3.json('./data/services.json', (error, response: {nodes: Node[], links: Link[]}) => {
+    d3.json(__DATA_SERVICES_URL__, (error, response: {nodes: Node[], links: Link[]}) => {
         if (!error) {
             nodes = response.nodes;
             links = response.links;
@@ -114,7 +115,7 @@ function prepare() {
                                 let combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
                                 d = (n1.group === n2.group
                                     ? combinedRadiuses
-                                    : combinedRadiuses * 3);
+                                    : combinedRadiuses * 5);
                             }
                             return d;
                         })
@@ -126,8 +127,8 @@ function prepare() {
                             return s;
                         })
                         )
-                    .force("collide", d3.forceCollide().radius(utils.getRadius))
-                    .force("charge", d3.forceManyBody().strength(-900).distanceMin(100))
+                    .force("collide", d3.forceCollide().radius((d: Node) => utils.getRadius(d) + 20))
+                    .force("charge", d3.forceManyBody().strength(-500).distanceMin(100))
                     .force("x", d3.forceX(diagramWidth / 2))
                     .force("y", d3.forceY(diagramHeight / 2));
 }
@@ -275,11 +276,13 @@ function updateSimulation() {
                         let x1 = d.x - biggestNode.x;
                         let y1 = d.y - biggestNode.y;
                         let l = Math.sqrt(x1 * x1 + y1 * y1);
-                        let r = utils.getRadius(d) + utils.getRadius(biggestNode) * 2;// + 10;
+                        let r = utils.getRadius(d) + utils.getRadius(biggestNode);
                         if (l != r) {
-                            l = (l - r) / l * alpha;
-                            nodes[n1].x -= x1 *= l;
-                            nodes[n1].y -= y1 *= l;
+                            let ld = (((l - r) / l) * alpha);
+                            x1 *= ld;
+                            y1 *= ld;
+                            nodes[n1].x -= (x1 * 2.8);
+                            nodes[n1].y -= (y1 * 2.8);
                             biggestNode.x += x1;
                             biggestNode.y += y1;
                         }
@@ -325,7 +328,7 @@ function updateSimulation() {
                 });
         });
     simulation.force<d3.ForceLink<Node, Link>>('link').links(links);
-    simulation.alphaTarget(0.2).restart();
+    simulation.alphaTarget(0.05).restart();
 
     // set timeout so the diagram doesn't just keep circling forever
     setTimeout(() => {
@@ -334,24 +337,82 @@ function updateSimulation() {
 }
 
 function dragstarted(d: Node) {
-    if (!d3.event.active) {
-        simulation.alphaTarget(0.3).restart();
-    }
     d.fx = d.x;
     d.fy = d.y;
 }
 
+let dragSimulationRestarted = false;
+
 function dragged(d: Node) {
+    if (!dragSimulationRestarted) {
+        simulation.alphaTarget(0.3).restart();
+        dragSimulationRestarted = true;
+    }
     d.fx = d3.event.x;
     d.fy = d3.event.y;
 }
 
 function dragended(d: Node) {
+    dragSimulationRestarted = false;
     if (!d3.event.active) {
         simulation.alphaTarget(0);
     }
     d.fx = null;
     d.fy = null;
+}
+
+let nodeClickTimeoutId: number = null;
+
+function onNodeClick(d: Node) {
+    clearTimeout(nodeClickTimeoutId);
+    nodeClickTimeoutId = null;
+
+    // First check if the shift key is pressed
+    if (d3.event.shiftKey) {
+        // with shift key pressed, select multiple, or deselect an already selected node
+        
+        // check if node is already selected
+        let highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.GetNodeNameOrGroup(hn) == utils.GetNodeNameOrGroup(d));
+        if (highlightedNodeIdx > -1) { // then remove node
+            highlightedNodes.splice(highlightedNodeIdx, 1);
+        } else { // highlight it
+            highlightedNodes.push(d);
+            PopulateInfoBox(d);
+        }
+        highlightNodes(false);
+    } else {
+        nodeClickTimeoutId = setTimeout(() => {
+            // only do something if there wasnt a double-click
+            if (nodeClickTimeoutId != null) {
+                clearTimeout(nodeClickTimeoutId);
+                nodeClickTimeoutId = null;
+                
+                PopulateInfoBox(d);
+                highlightedNodes = [ d ];
+                highlightNodes(false);
+            }
+        }, 200);
+    }
+}
+
+function onNodeDblclick(d: Node) {
+    if (!d3.event.shiftKey) {
+        // cancel single click timer
+        if (nodeClickTimeoutId != null) {
+            clearTimeout(nodeClickTimeoutId);
+            nodeClickTimeoutId = null;
+        }
+    
+        if (d.nodes) { // A grouped node
+            ungroupNodes(d);
+        } else if (d.name) { // a single node
+            regroupNodes(d);
+        }
+
+        // Clear any highlighted nodes (animation time causes issues if it's before the grouping)
+        highlightedNodes = [];
+        highlightNodes(false);
+    }
 }
 
 function nodeTextOpacity(d: Node): number {
@@ -448,56 +509,6 @@ function regroupNodes(d: Node) {
     nodes.push(newNodeGroup);
 
     updateSimulation();
-}
-
-let nodeClickTimeoutId: number = null;
-
-function onNodeClick(d: Node) {
-    clearTimeout(nodeClickTimeoutId);
-    nodeClickTimeoutId = null;
-
-    // First check if the shift key is pressed
-    if (d3.event.shiftKey) {
-        // with shift key pressed, select multiple, or deselect an already selected node
-        
-        // check if node is already selected
-        let highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.GetNodeNameOrGroup(hn) == utils.GetNodeNameOrGroup(d));
-        if (highlightedNodeIdx > -1) { // then remove node
-            highlightedNodes.splice(highlightedNodeIdx, 1);
-        } else { // highlight it
-            highlightedNodes.push(d);
-            PopulateInfoBox(d);
-        }
-        highlightNodes(false);
-    } else {
-        nodeClickTimeoutId = setTimeout(() => {
-            // only do something if there wasnt a double-click
-            if (nodeClickTimeoutId != null) {
-                clearTimeout(nodeClickTimeoutId);
-                nodeClickTimeoutId = null;
-                
-                PopulateInfoBox(d);
-                highlightedNodes = [ d ];
-                highlightNodes(false);
-            }
-        }, 200);
-    }
-}
-
-function onNodeDblclick(d: Node) {
-    if (!d3.event.shiftKey) {
-        // cancel single click timer
-        if (nodeClickTimeoutId != null) {
-            clearTimeout(nodeClickTimeoutId);
-            nodeClickTimeoutId = null;
-        }
-    
-        if (d.nodes) { // A grouped node
-            ungroupNodes(d);
-        } else if (d.name) { // a single node
-            regroupNodes(d);
-        }
-    }
 }
 
 export function searchForNodes(searchText: string) {
