@@ -91,23 +91,7 @@ path.hull {
 .config-box {
   font-family: sans-serif;
   padding-left: 10px;
-  input {
-    border-style: none;
-    line-height: 22px;
-    margin-left: 5px;
-    padding-left: 5px;
-  }
-  button {
-    border-style: none;
-    line-height: 22px;
-    margin: 5px;
-    &:hover {
-      background-color: lightgray;
-    }
-    &:active {
-      background-color: gray;
-    }
-  }
+  
   .spacer {
     margin-left: 20px;
   }

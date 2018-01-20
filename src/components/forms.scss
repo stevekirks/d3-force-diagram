@@ -1,3 +1,36 @@
+$backgroundColorHighlight: #f35429;
+$inputColor: white;
+
+input {
+  border-style: none;
+  line-height: 22px;
+  margin-left: 5px;
+  padding-left: 5px;
+  &:focus {
+    outline-color: $backgroundColorHighlight;
+  }
+}
+
+// Start Button
+button {
+  border-style: none;
+  line-height: 22px;
+  margin: 5px;
+  &:focus {
+    outline-color: $backgroundColorHighlight;
+  }
+  &:hover {
+    background-color: $backgroundColorHighlight;
+    color: $inputColor;
+  }
+  &:active {
+    background-color:darken($backgroundColorHighlight, 20%);
+    color: $inputColor;
+  }
+}
+// End Button
+
+// Start Checkbox
 input[type="checkbox"] {
   position: absolute; // take it out of document flow
   opacity: 0; // hide it
@@ -15,12 +48,12 @@ input[type="checkbox"] {
     vertical-align: text-top;
     width: 20px;
     height: 20px;
-    background: white;
+    background: $inputColor;
   }
 
   // Box hover
   &:hover + label:before {
-    background: #f35429;
+    background: $backgroundColorHighlight;
   }
   
   // Box focus
@@ -30,7 +63,7 @@ input[type="checkbox"] {
 
   // Box checked
   &:checked + label:before {
-    background: #f35429;
+    background: $backgroundColorHighlight;
   }
   
   // Disabled state label.
@@ -51,16 +84,17 @@ input[type="checkbox"] {
     position: absolute;
     left: 5px;
     top: 9px;
-    background: white;
+    background: $inputColor;
     width: 2px;
     height: 2px;
     box-shadow: 
-      2px 0 0 white,
-      4px 0 0 white,
-      4px -2px 0 white,
-      4px -4px 0 white,
-      4px -6px 0 white,
-      4px -8px 0 white;
+      2px 0 0 $inputColor,
+      4px 0 0 $inputColor,
+      4px -2px 0 $inputColor,
+      4px -4px 0 $inputColor,
+      4px -6px 0 $inputColor,
+      4px -8px 0 $inputColor;
     transform: rotate(45deg);
   }
 }
+// End Checkbox

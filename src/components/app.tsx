@@ -17,16 +17,21 @@ export class App extends React.Component<AppProps, AppState> {
 
         this.handleInputHighlightText = this.handleInputHighlightText.bind(this);
         this.handleShowAllLabels = this.handleShowAllLabels.bind(this);
+        this.updateInputHighlightText = this.updateInputHighlightText.bind(this);
     }
 
     componentDidMount() {
-        diagram.load();
+        diagram.load(this.updateInputHighlightText);
+    }
+
+    updateInputHighlightText(txt: string) {
+        this.setState({inputHighlightText: txt});
+        diagram.highlightNodes(txt);
     }
 
     handleInputHighlightText(event: React.ChangeEvent<HTMLInputElement>) {
         let newVal = event.currentTarget.value;
-        this.setState({inputHighlightText: newVal});
-        diagram.highlightNodes(newVal);
+        this.updateInputHighlightText(newVal);
         event.preventDefault();
     }
 
@@ -43,7 +48,7 @@ export class App extends React.Component<AppProps, AppState> {
                 <h1>Diagram</h1>
                 <div className="config-box">
                     <label>Search</label>
-                    <input name="inputSearch" type="text" onChange={this.handleInputHighlightText} />
+                    <input name="inputSearch" type="text" onChange={this.handleInputHighlightText} value={this.state.inputHighlightText} />
                     <button id="btnHighlight" onClick={() => diagram.highlightNodes(this.state.inputHighlightText)}>Highlight</button>
                     <span className="spacer"></span>
                     <input id="chkboxShowAllLabels" type="checkbox" checked={this.state.showAllLabels} onChange={this.handleShowAllLabels} />

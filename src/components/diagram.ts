@@ -5,7 +5,9 @@ import * as utils from './utils/utils';
 import { Link, Node, Hull } from './data-interfaces';
 import Tooltip from './utils/tooltip';
 
-export function load() {
+export function load(highlightCallback: (txt: string) => void) {
+    externalHighlightCallback = highlightCallback;
+
     prepare();
 
     // Show a loading message
@@ -32,6 +34,7 @@ export function load() {
 let nodes: Node[];
 let links: Link[];
 let biggestNodePerGroup: { [key: string]: Node };
+let externalHighlightCallback: (txt: string) => void;
 let showAllDiagramLabels: boolean = false;
 
 let diagramWidth: number;
@@ -216,7 +219,7 @@ function updateGraph() {
                     .style("opacity", 0);
             }
         })
-        .on('click', PopulateInfoBox)
+        .on('click', onNodeClick)
         .on('dblclick', onNodeDblclick)
         .call(drager);
     nodeEnterElements.append("path")
@@ -449,6 +452,14 @@ function regroupNodes(d: Node) {
     updateSimulation();
 }
 
+function onNodeClick(d: Node) {
+    if (externalHighlightCallback != null) {
+        let title = GetNodeOrLinkTitle(d);
+        externalHighlightCallback(title);
+    }
+    PopulateInfoBox(d);
+}
+
 function onNodeDblclick(d: Node) {
     if (d.nodes) { // A grouped node
         ungroupNodes(d);
@@ -524,11 +535,8 @@ export function showAllLabels(show: boolean) {
     d3.selectAll('.node-text').style('opacity', nodeTextOpacity);
 }
 
-// Info Box
-function PopulateInfoBox(nodeOrLink: Node | Link) {
-    let divServiceDetails = d3.select("#info-box");
+function GetNodeOrLinkTitle(nodeOrLink: Node | Link): string {
     let title = '';
-    let notes = '';
     if (utils.isLinkNotNode(nodeOrLink)) {
         let sourceName = (typeof nodeOrLink.source === 'string') ? nodeOrLink.source : (nodeOrLink.source.name || nodeOrLink.source.group);
         let targetName = (typeof nodeOrLink.target === 'string') ? nodeOrLink.target : (nodeOrLink.target.name || nodeOrLink.target.group);
@@ -539,8 +547,15 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
         } else if (nodeOrLink.group) {
             title = nodeOrLink.group;
         }
-        notes = nodeOrLink.notes || '';
     }
+    return title;
+}
+
+// Info Box
+function PopulateInfoBox(nodeOrLink: Node | Link) {
+    let divServiceDetails = d3.select("#info-box");
+    let title = GetNodeOrLinkTitle(nodeOrLink);
+    let notes = !utils.isLinkNotNode(nodeOrLink) ? (nodeOrLink.notes || '') : '';
     divServiceDetails.select(".title").text(title);
     divServiceDetails.select(".notes").text(notes);
 
