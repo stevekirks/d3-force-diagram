@@ -6,6 +6,7 @@ input {
   line-height: 22px;
   margin-left: 5px;
   padding-left: 5px;
+  border-radius: 1px;
   &:focus {
     outline-color: $backgroundColorHighlight;
   }
@@ -16,6 +17,7 @@ button {
   border-style: none;
   line-height: 22px;
   margin: 5px;
+  border-radius: 1px;
   &:focus {
     outline-color: $backgroundColorHighlight;
   }

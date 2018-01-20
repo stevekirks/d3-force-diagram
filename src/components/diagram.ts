@@ -2,11 +2,11 @@ import * as d3 from 'd3';
 import { schemePastel1, schemeDark2 } from 'd3-scale-chromatic';
 import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './utils/superformula';
 import * as utils from './utils/utils';
+import * as searchUtils from './utils/search-matching';
 import { Link, Node, Hull } from './data-interfaces';
 import Tooltip from './utils/tooltip';
 
-export function load(highlightCallback: (txt: string) => void) {
-    externalHighlightCallback = highlightCallback;
+export function load() {
 
     prepare();
 
@@ -32,9 +32,9 @@ export function load(highlightCallback: (txt: string) => void) {
 }
 
 let nodes: Node[];
+let highlightedNodes: Node[] = [];
 let links: Link[];
 let biggestNodePerGroup: { [key: string]: Node };
-let externalHighlightCallback: (txt: string) => void;
 let showAllDiagramLabels: boolean = false;
 
 let diagramWidth: number;
@@ -225,9 +225,9 @@ function updateGraph() {
     nodeEnterElements.append("path")
             .attr("class", "node-shape")
             .attr("d", defaultSuperdupaPath.getPath)
-            .attr("stroke", (d: Node) => { return colorScale(d.group); })
+            .attr("stroke", (d: Node) => colorScale(d.group))
+            .attr("fill", (d: Node) => colorScale(d.group))
             .attr("stroke-width", defaultNodeStrokeWidth)
-            .attr("fill", (d: Node) => { return colorScale(d.group); })
             .style("stroke-opacity", 1e-6)
             .style("fill-opacity", 1e-6)
             .transition(utils.transitionLinearSecond)
@@ -250,13 +250,13 @@ function updateGraph() {
         .style("fill-opacity", 1e-6)
         .remove();
     let hullEnterElements = hullElements.enter().append("path")
-            .attr("class", "hull")
-            .attr("d", utils.drawCluster);
+        .attr("class", "hull")
+        .attr("d", utils.drawCluster);
     hullEnterElements
-            .style("fill", (d: Node) => { return colorScale(d.group); })
-            .style("fill-opacity", 1e-6)
-            .transition(utils.transitionLinearSecond)
-            .style("fill-opacity", 0.3);
+        .style("fill", (d: Node) => colorScale(d.group))
+        .style("fill-opacity", 1e-6)
+        .transition(utils.transitionLinearSecond)
+        .style("fill-opacity", 0.3);
     hullElements = hullEnterElements.merge(hullElements);
 }
 
@@ -452,81 +452,192 @@ function regroupNodes(d: Node) {
     updateSimulation();
 }
 
+let nodeClickTimeoutId: number = null;
+
 function onNodeClick(d: Node) {
-    if (externalHighlightCallback != null) {
-        let title = GetNodeOrLinkTitle(d);
-        externalHighlightCallback(title);
+    clearTimeout(nodeClickTimeoutId);
+    nodeClickTimeoutId = null;
+
+    // First check if the shift key is pressed
+    if (d3.event.shiftKey) {
+        // with shift key pressed, select multiple, or deselect an already selected node
+        
+        // check if node is already selected
+        let highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.GetNodeNameOrGroup(hn) == utils.GetNodeNameOrGroup(d));
+        if (highlightedNodeIdx > -1) { // then remove node
+            highlightedNodes.splice(highlightedNodeIdx, 1);
+        } else { // highlight it
+            highlightedNodes.push(d);
+            PopulateInfoBox(d);
+        }
+        highlightNodes(false);
+    } else {
+        nodeClickTimeoutId = setTimeout(() => {
+            // only do something if there wasnt a double-click
+            if (nodeClickTimeoutId != null) {
+                clearTimeout(nodeClickTimeoutId);
+                nodeClickTimeoutId = null;
+                
+                PopulateInfoBox(d);
+                highlightedNodes = [ d ];
+                highlightNodes(false);
+            }
+        }, 200);
     }
-    PopulateInfoBox(d);
 }
 
 function onNodeDblclick(d: Node) {
-    if (d.nodes) { // A grouped node
-        ungroupNodes(d);
-    } else if (d.name) { // a single node
-        regroupNodes(d);
+    if (!d3.event.shiftKey) {
+        // cancel single click timer
+        if (nodeClickTimeoutId != null) {
+            clearTimeout(nodeClickTimeoutId);
+            nodeClickTimeoutId = null;
+        }
+    
+        if (d.nodes) { // A grouped node
+            ungroupNodes(d);
+        } else if (d.name) { // a single node
+            regroupNodes(d);
+        }
     }
 }
 
-export function highlightNodes(searchText: string) {
+export function searchForNodes(searchText: string) {
     if (searchText === "") {
+        highlightedNodes = [];
+    } else {
+        let matchedNodes = searchUtils.SearchNodes(searchText, nodeElements);
+        highlightedNodes = matchedNodes.data();
+    }
+    highlightNodes(true);
+}
+
+function highlightNodes(makeNodesStandout: boolean) {
+    if (highlightedNodes.length == 0) {
         nodeElements.selectAll(".node-shape").transition()
             .duration(750)
-            .attr("d", defaultSuperdupaPath.getPath);
+            .attr("d", defaultSuperdupaPath.getPath)
+            .attr("stroke", (d: Node) => colorScale(d.group))
+            .attr("fill", (d: Node) => colorScale(d.group))
+            .style("stroke-opacity", 1)
+            .style("fill-opacity", 1);
+        nodeElements.selectAll(".node-text")
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", 1)
+                .style("fill-opacity", 1);
+        linkElements
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", 1);
+        hullElements
+            .transition()
+                .duration(750)
+                .style("fill", (d: Node) => colorScale(d.group))
+                .style("fill-opacity", 0.3);
     } else {
-        var matchedNodes = nodeElements
-            .filter((d: Node) => {
-                var matchAgainst = [];
-                if (d.name) {
-                    matchAgainst.push(d.name.toLowerCase());
-                } else if (d.group) {
-                    matchAgainst.push(d.group.toLowerCase());
-                }
-                for (var i = 0; i < matchAgainst.length; i++) {
-                    if (matchAgainst[i].indexOf(searchText.toLowerCase()) !== -1) {
-                        return true;
-                    }
-                }
-                return false;
-            });
+        let matchedNodesData = highlightedNodes;
+        let matchedNodes = searchUtils.GetMatchedNodes(matchedNodesData, nodeElements);
+        let matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements);
+        let unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements);
+        let neighbourNodes = searchUtils.GetNeighbourNodes(matchedNodesData, matchedLinks.data(), nodeElements);
+        let highlightedAndNeighbourNodesData = matchedNodesData.concat(neighbourNodes.data());
+        let unmatchedNodes = searchUtils.GetUnmatchedNodes(highlightedAndNeighbourNodesData, nodeElements);
+        let matchedHulls = searchUtils.GetMatchedHulls(matchedNodesData, hullElements);
+        let unmatchedHulls = searchUtils.GetUnmatchedHulls(matchedHulls.data(), hullElements);
 
         // while originally I used easing, because we want to highlight already highlighted nodes I chose to use two transitions instead
-        var eB = d3.easeBackOut.overshoot(10);
-        
-        let bigSuperdupaPath = new Superformula().type(() => "gear");
-        let highlightedSuperdupaPath = new Superformula().type(() => "gear");
-        matchedNodes.selectAll(".node-shape")
-            .transition()
-            .duration(550)
-            .attr("d", bigSuperdupaPath.size((d) => { 
-                return 5 * utils.getHighlightedRadius(d); 
-            }).getPath)
-            .transition()
-            .duration(450)
-            .attr("d", highlightedSuperdupaPath.size((d) => { 
-                return 3 * utils.getHighlightedRadius(d); 
-            }).getPath);
+        let eB = d3.easeBackOut.overshoot(10);
 
-        var unmatchedNodes = nodeElements
-            .filter((d: Node) => {
-                var matchAgainst = [];
-                if (d.name) {
-                    matchAgainst.push(d.name.toLowerCase());
-                } else if (d.group) {
-                    matchAgainst.push(d.group.toLowerCase());
-                }
-                for (var i = 0; i < matchAgainst.length; i++) {
-                    if (matchAgainst[i].indexOf(searchText.toLowerCase()) === -1) {
-                        return true;
-                    }
-                }
-                return false;
-            });
+        const highlightColor = '#32f272';
+        const everythingElseColor = '#31d8ea';
+        const everythingElseOpacity = 0.2;
+        
+        if (makeNodesStandout == true) {
+            let bigSuperdupaPath = new Superformula().type(() => "gear");
+            let highlightedSuperdupaPath = new Superformula().type(() => "gear");
+            matchedNodes.selectAll(".node-shape")
+                .transition()
+                .duration(550)
+                .attr("d", bigSuperdupaPath.size((d) => { 
+                    return 5 * utils.getHighlightedRadius(d); 
+                }).getPath)
+                .attr("stroke", (d: Node) => highlightColor)
+                .attr("fill", (d: Node) => highlightColor)
+                .style("stroke-opacity", 1)
+                .style("fill-opacity", 1)
+                .transition()
+                .duration(450)
+                .attr("d", highlightedSuperdupaPath.size((d) => { 
+                    return 3 * utils.getHighlightedRadius(d); 
+                }).getPath);
+        } else {
+            let bigDefaultSuperdupaPath = new Superformula().type(utils.defaultNodeSuperformulaType);
+            matchedNodes.selectAll(".node-shape")
+                .transition()
+                .duration(450)
+                .attr("d", bigDefaultSuperdupaPath.size((d) => { 
+                    return 2 * utils.getHighlightedRadius(d); 
+                }).getPath)
+                .attr("stroke", (d: Node) => highlightColor)
+                .attr("fill", (d: Node) => highlightColor)
+                .style("stroke-opacity", 1)
+                .style("fill-opacity", 1);
+        }
+        
+        matchedNodes.selectAll(".node-text")
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", 1)
+                .style("fill-opacity", 1);
+        
+        neighbourNodes.selectAll(".node-shape")
+            .transition()
+                .duration(750)
+                .attr("d", defaultSuperdupaPath.getPath)
+                .attr("stroke", (d: Node) => everythingElseColor)
+                .attr("fill", (d: Node) => everythingElseColor)
+                .style("stroke-opacity", 1)
+                .style("fill-opacity", 1);
+        neighbourNodes.selectAll(".node-text")
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", 1)
+                .style("fill-opacity", 1);
 
         unmatchedNodes.selectAll(".node-shape")
             .transition()
                 .duration(750)
-                .attr("d", defaultSuperdupaPath.getPath);
+                .attr("d", defaultSuperdupaPath.getPath)
+                .attr("stroke", (d: Node) => everythingElseColor)
+                .attr("fill", (d: Node) => everythingElseColor)
+                .style("stroke-opacity", everythingElseOpacity)
+                .style("fill-opacity", everythingElseOpacity);
+        unmatchedNodes.selectAll(".node-text")
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", 1e-6)
+                .style("fill-opacity", 1e-6);
+
+        matchedLinks
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", 1);
+        unmatchedLinks
+            .transition()
+                .duration(750)
+                .style("stroke-opacity", everythingElseOpacity);
+
+        matchedHulls
+            .transition()
+                .duration(750)
+                .style("fill", highlightColor)
+                .style("fill-opacity", 0.3);
+        unmatchedHulls
+            .transition()
+                .duration(750)
+                .style("fill", everythingElseColor)
+                .style("fill-opacity", 0.1);
     }
 }
 
@@ -535,26 +646,10 @@ export function showAllLabels(show: boolean) {
     d3.selectAll('.node-text').style('opacity', nodeTextOpacity);
 }
 
-function GetNodeOrLinkTitle(nodeOrLink: Node | Link): string {
-    let title = '';
-    if (utils.isLinkNotNode(nodeOrLink)) {
-        let sourceName = (typeof nodeOrLink.source === 'string') ? nodeOrLink.source : (nodeOrLink.source.name || nodeOrLink.source.group);
-        let targetName = (typeof nodeOrLink.target === 'string') ? nodeOrLink.target : (nodeOrLink.target.name || nodeOrLink.target.group);
-        title = "Link: " + sourceName + " - " + targetName;
-    } else {
-        if (nodeOrLink.name) {
-            title = nodeOrLink.name;
-        } else if (nodeOrLink.group) {
-            title = nodeOrLink.group;
-        }
-    }
-    return title;
-}
-
 // Info Box
 function PopulateInfoBox(nodeOrLink: Node | Link) {
     let divServiceDetails = d3.select("#info-box");
-    let title = GetNodeOrLinkTitle(nodeOrLink);
+    let title = utils.GetNodeOrLinkTitle(nodeOrLink);
     let notes = !utils.isLinkNotNode(nodeOrLink) ? (nodeOrLink.notes || '') : '';
     divServiceDetails.select(".title").text(title);
     divServiceDetails.select(".notes").text(notes);

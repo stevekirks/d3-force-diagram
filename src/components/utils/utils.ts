@@ -191,3 +191,38 @@ export function getLinkGradientId(d: Link) {
     let gradientId: string = "linkGrad-" + getLinkSourceName(d) + getLinkTargetName(d);
     return gradientId.replace(/ /g, "");
 }
+
+// The Node Name or Group is used to identify the node
+export function GetNodeNameOrGroup(node: Node): string {
+    return node.name || node.group;
+}
+
+export function GetLinkSourceNameOrGroup(link: Link): string {
+    return (typeof link.source === 'string') ? link.source : (link.source.name || link.source.group);
+}
+
+export function GetLinkTargetNameOrGroup(link: Link): string {
+    return (typeof link.target === 'string') ? link.target : (link.target.name || link.target.group);
+}
+
+// The title can be used to identify the node or link
+export function GetNodeOrLinkTitle(nodeOrLink: Node | Link): string {
+    let title = '';
+    if (isLinkNotNode(nodeOrLink)) {
+        let sourceName = GetLinkSourceNameOrGroup(nodeOrLink);
+        let targetName = GetLinkTargetNameOrGroup(nodeOrLink);;
+        title = "Link: " + sourceName + " - " + targetName;
+    } else {
+        title = GetNodeNameOrGroup(nodeOrLink);
+    }
+    return title;
+}
+
+export function findIndex(arr: any[], callback: (arg: any) => boolean): number {
+    for (let i = 0; i < arr.length; i++) {
+        if (callback(arr[i]) == true) {
+            return i;
+        }
+    }
+    return -1;
+}
