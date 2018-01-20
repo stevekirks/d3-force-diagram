@@ -1,27 +1,46 @@
-module.exports = {
-    entry: "./src/index.tsx",
-    output: {
-        filename: "diagram.js",
-        path: __dirname + "/dist"
-    },
+const webpack = require('webpack');
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+var path = require('path');
+var nodeModulesPath = path.resolve(__dirname, 'node_modules');
 
-    // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
+module.exports = (env) => {
+    const isDevBuild = !(env && env.prod);
+    const extractSass = new ExtractTextPlugin({
+        filename: "calendar.css",
+        disable: isDevBuild
+    });
 
-    resolve: {
-        // Add '.ts' and '.tsx' as resolvable extensions.
-        extensions: [".ts", ".tsx", ".js", ".json"]
-    },
-
-    module: {
-        rules: [
-            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
-
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
-
-            { test: /\.css?$/, loader: "style-loader!css-loader" }
+    return {
+        entry: "./src/index.tsx",
+        output: {
+            filename: "diagram.js",
+            path: __dirname + "/dist"
+        },
+        devtool: "source-map",
+        resolve: {
+            extensions: [".ts", ".tsx", ".js", ".json"]
+        },
+        module: {
+            rules: [
+                { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+                { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+                //{ test: /\.css?$/, loader: "style-loader!css-loader" },
+                {
+                    test: /\.scss|css$/,
+                    use: extractSass.extract({
+                        use: [{
+                            loader: "css-loader"
+                        }, {
+                            loader: "sass-loader"
+                        }],
+                        // use style-loader in development
+                        fallback: "style-loader"
+                    })
+                }
+            ]
+        },
+        plugins: [
+            extractSass
         ]
     }
 };

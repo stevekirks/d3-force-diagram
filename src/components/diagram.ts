@@ -32,12 +32,13 @@ export function load() {
 let nodes: Node[];
 let links: Link[];
 let biggestNodePerGroup: { [key: string]: Node };
+let showAllDiagramLabels: boolean = false;
 
 let diagramWidth: number;
 let diagramHeight: number;
 const nodePadding = 1.5;
 const clusterPadding = 6;
-const colorScale = d3.scaleOrdinal(schemeDark2);
+const colorScale = d3.scaleOrdinal(schemeDark2.slice());
 const rainbow = d3.interpolateRainbow;
 
 let nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>;
@@ -231,13 +232,7 @@ function updateGraph() {
             .style("fill-opacity", 1);
     nodeEnterElements.append("text")
         .classed("node-text", true)
-        .style("opacity", (d) => {
-            let opacity = 0;
-            if (utils.getRadius(d) >= 10) {
-                opacity = 1;
-            }
-            return opacity;
-        })
+        .style("opacity", nodeTextOpacity)
         .attr("text-anchor", "right")
         .attr("dominant-baseline", "central")
         .attr("transform", (d) => {
@@ -356,6 +351,14 @@ function dragended(d: Node) {
     }
     d.fx = null;
     d.fy = null;
+}
+
+function nodeTextOpacity(d: Node): number {
+    let opacity = 0;
+    if (showAllDiagramLabels == true || utils.getRadius(d) >= 10) {
+        opacity = 1;
+    }
+    return opacity;
 }
 
 function ungroupNodes(d: Node) {
@@ -514,6 +517,11 @@ export function highlightNodes(searchText: string) {
                 .duration(750)
                 .attr("d", defaultSuperdupaPath.getPath);
     }
+}
+
+export function showAllLabels(show: boolean) {
+    showAllDiagramLabels = show;
+    d3.selectAll('.node-text').style('opacity', nodeTextOpacity);
 }
 
 // Info Box

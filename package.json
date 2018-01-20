@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "webpack-dev-server --progress --hot --port 3040 --open",
-    "build": "webpack -p"
+    "build": "SET NODE_ENV=production & webpack --env.prod=true --optimize-minimize"
   },
   "dependencies": {
     "@types/d3": "^4.9.0",
@@ -20,6 +20,9 @@
   "devDependencies": {
     "awesome-typescript-loader": "^3.2.1",
     "css-loader": "^0.28.4",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "node-sass": "^4.7.2",
+    "sass-loader": "^6.0.6",
     "source-map-loader": "^0.2.1",
     "style-loader": "^0.18.2",
     "typescript": "^2.4.1",
