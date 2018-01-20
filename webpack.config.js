@@ -5,8 +5,9 @@ var nodeModulesPath = path.resolve(__dirname, 'node_modules');
 
 module.exports = (env) => {
     const isDevBuild = !(env && env.prod);
+
     const extractSass = new ExtractTextPlugin({
-        filename: "calendar.css",
+        filename: "diagram.css",
         disable: isDevBuild
     });
 
@@ -29,7 +30,7 @@ module.exports = (env) => {
                     test: /\.scss|css$/,
                     use: extractSass.extract({
                         use: [{
-                            loader: "css-loader"
+                            loader: "css-loader", options: { minimize: true }
                         }, {
                             loader: "sass-loader"
                         }],
@@ -39,8 +40,14 @@ module.exports = (env) => {
                 }
             ]
         },
-        plugins: [
+        plugins: isDevBuild ? [
             extractSass
+        ] : [
+            extractSass,
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': JSON.stringify('production')
+            }),
+            new webpack.optimize.UglifyJsPlugin()
         ]
     }
 };

@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "webpack-dev-server --progress --hot --port 3040 --open",
-    "build": "SET NODE_ENV=production & webpack --env.prod=true --optimize-minimize"
+    "build": "SET NODE_ENV=production & webpack --env.prod=true"
   },
   "dependencies": {
     "@types/d3": "^4.9.0",
