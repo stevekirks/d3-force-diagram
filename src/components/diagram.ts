@@ -106,9 +106,7 @@ function prepare() {
     // Force Simulation
     simulation = d3.forceSimulation<Node,Link>()
                     .force("link", d3.forceLink()
-                        .id((d: Node) => {
-                            return d.name ? d.name : d.group;
-                        })
+                        .id((d: Node) => utils.GetNodeNameOrGroup(d))
                         .distance((l: Link, i: number) => {
                             let n1 = l.source, n2 = l.target;
                             let d: number = utils.nodeRadiusSizes.default;
@@ -632,12 +630,12 @@ function highlightNodes(makeNodesStandout: boolean) {
             .transition()
                 .duration(750)
                 .style("fill", highlightColor)
-                .style("fill-opacity", 0.3);
+                .style("fill-opacity", 0.2);
         unmatchedHulls
             .transition()
                 .duration(750)
                 .style("fill", everythingElseColor)
-                .style("fill-opacity", 0.1);
+                .style("fill-opacity", 0.08);
     }
 }
 
