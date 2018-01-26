@@ -1,3 +1,5 @@
+import { Superformula } from "./utils/superformula";
+
 export interface Node {
     name?: string,
     group: string,
@@ -25,4 +27,10 @@ export interface Link {
 export interface Hull {
     group: string,
     path: [number, number][]
+}
+
+export interface NodeStateProperties {
+    className: string,
+    nodeTextShiftMultiplier: number;
+    shapeSuperformula: Superformula;
 }

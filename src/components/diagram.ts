@@ -4,10 +4,13 @@ import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './utils
 import * as utils from './utils/utils';
 import * as searchUtils from './utils/search-matching';
 import { Link, Node, Hull } from './data-interfaces';
+import * as constants from './constants';
 import Tooltip from './utils/tooltip';
+import { NodeStyles } from './node-styles';
 declare var __DATA_SERVICES_URL__: string;
 
-export function load() {
+export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: boolean) => void) {
+    highlightedNodesChangedCallback = highlightedNodesChangedCallbackArg;
 
     prepare();
 
@@ -32,17 +35,42 @@ export function load() {
     });
 }
 
+export function searchForNodes(searchText: string) {
+    if (searchText === "") {
+        highlightedNodes = [];
+        hasSearchedForNodes = false;
+    } else {
+        let matchedNodes = searchUtils.SearchNodes(searchText, nodeElements);
+        highlightedNodes = matchedNodes.data();
+        hasSearchedForNodes = true;
+    }
+    highlightNodes();
+}
+
+export function showAllLabels(show: boolean) {
+    if (show == true) {
+        d3.selectAll('.node-text').style('opacity', 1);
+    } else {
+        highlightNodes();
+    }
+}
+
+export function showOnlyHighlighted(show: boolean) {
+    nodeStyles.showOnlyHighlighted = show;
+    highlightNodes();
+}
+
+let highlightedNodesChangedCallback: (hasHighlightedNodes: boolean) => void;
+
 let nodes: Node[];
 let highlightedNodes: Node[] = [];
 let links: Link[];
 let biggestNodePerGroup: { [key: string]: Node };
-let showAllDiagramLabels: boolean = false;
 
 let diagramWidth: number;
 let diagramHeight: number;
 const nodePadding = 1.5;
 const clusterPadding = 6;
-const colorScale = d3.scaleOrdinal(schemeDark2.slice());
 const rainbow = d3.interpolateRainbow;
 
 let nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>;
@@ -53,12 +81,16 @@ let hullElements: d3.Selection<d3.BaseType, Hull, d3.BaseType, any>;
 let svg: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 let svgDefs: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 
+let hasSearchedForNodes: boolean = false;
+
 //let tooltip: Tooltip; // Not currently used, but it works if needed
 
 const defaultSuperdupaPath = new Superformula()
             .type(utils.defaultNodeSuperformulaType)
 			.size(utils.defaultNodeSuperformulaSize)
             .segments(360);
+
+const nodeStyles = new NodeStyles();
 
 // zooming
 let zoom: d3.ZoomBehavior<Element, {}>;
@@ -106,31 +138,31 @@ function prepare() {
 
     // Force Simulation
     simulation = d3.forceSimulation<Node,Link>()
-                    .force("link", d3.forceLink()
-                        .id((d: Node) => utils.GetNodeNameOrGroup(d))
-                        .distance((l: Link, i: number) => {
-                            let n1 = l.source, n2 = l.target;
-                            let d: number = utils.nodeRadiusSizes.default;
-                            if (utils.isNodeNotString(n1) && utils.isNodeNotString(n2)) {
-                                let combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
-                                d = (n1.group === n2.group
-                                    ? combinedRadiuses
-                                    : combinedRadiuses * 5);
-                            }
-                            return d;
-                        })
-                        .strength((l: Link) => {
-                            let s: number = 0.3;
-                            if (typeof l.source !== "string" && typeof l.target !== "string") {
-                                s = (l.source.group === l.target.group ? 0.01 : 0.3);
-                            }
-                            return s;
-                        })
-                        )
-                    .force("collide", d3.forceCollide().radius((d: Node) => utils.getRadius(d) + 20))
-                    .force("charge", d3.forceManyBody().strength(-500).distanceMin(100))
-                    .force("x", d3.forceX(diagramWidth / 2))
-                    .force("y", d3.forceY(diagramHeight / 2));
+        .force("link", d3.forceLink()
+            .id((d: Node) => utils.GetNodeNameOrGroup(d))
+            .distance((l: Link, i: number) => {
+                let n1 = l.source, n2 = l.target;
+                let d: number = utils.nodeRadiusSizes.default;
+                if (utils.isNodeNotString(n1) && utils.isNodeNotString(n2)) {
+                    let combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
+                    d = (n1.group === n2.group
+                        ? combinedRadiuses
+                        : combinedRadiuses * 5);
+                }
+                return d;
+            })
+            .strength((l: Link) => {
+                let s: number = 0.3;
+                if (typeof l.source !== "string" && typeof l.target !== "string") {
+                    s = (l.source.group === l.target.group ? 0.01 : 0.3);
+                }
+                return s;
+            })
+            )
+        .force("collide", d3.forceCollide().radius((d: Node) => utils.getRadius(d) + 20))
+        .force("charge", d3.forceManyBody().strength(-500).distanceMin(100))
+        .force("x", d3.forceX(diagramWidth / 2))
+        .force("y", d3.forceY(diagramHeight / 2));
 }
 
 function updateGraph() {
@@ -189,59 +221,26 @@ function updateGraph() {
         .remove();
     let drager: d3.DragBehavior<any, any, any> = d3.drag();
     drager.on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
+        .on("drag", dragged)
+        .on("end", dragended);
     let nodeEnterElements = nodeElements.enter()
         .append("g")
-        .attr("class", "node");
-    const defaultNodeStrokeWidth = 1.5;
+        .classed("node", true);
     nodeEnterElements
         .on('mouseover', function (d, i) { // function (not lambda) is reqd for 'this'
-            d3.select(this).select(".node-shape")
-                .attr("stroke-width", defaultNodeStrokeWidth * 3);
-            let txtEle = d3.select(this).select("text");
-            if (Number(txtEle.style("opacity")) === 0) {
-                txtEle.classed("temp-show", true)
-                    .transition()
-                    .duration(200)
-                    .style("opacity", 1);
-            }
+            nodeStyles.applyMouseOver(d3.select(this));
         })
         .on('mouseout', function (d, i) {
-            d3.select(this).select(".node-shape")
-                .attr("stroke-width", defaultNodeStrokeWidth);
-            let txtEle = d3.select(this).select("text");
-            if (txtEle.classed("temp-show")) {
-                txtEle.classed("temp-show", false)
-                    .transition()
-                    .duration(200)
-                    .style("opacity", 0);
-            }
+            nodeStyles.applyMouseOut(d3.select(this));
         })
         .on('click', onNodeClick)
         .on('dblclick', onNodeDblclick)
         .call(drager);
     nodeEnterElements.append("path")
-            .attr("class", "node-shape")
-            .attr("d", defaultSuperdupaPath.getPath)
-            .attr("stroke", (d: Node) => colorScale(d.group))
-            .attr("fill", (d: Node) => colorScale(d.group))
-            .attr("stroke-width", defaultNodeStrokeWidth)
-            .style("stroke-opacity", 1e-6)
-            .style("fill-opacity", 1e-6)
-            .transition(utils.transitionLinearSecond)
-            .style("stroke-opacity", 1)
-            .style("fill-opacity", 1);
+        .classed("node-shape", true);
     nodeEnterElements.append("text")
-        .classed("node-text", true)
-        .style("opacity", nodeTextOpacity)
-        .attr("text-anchor", "right")
-        .attr("dominant-baseline", "central")
-        .attr("transform", (d) => {
-            let shiftRight = utils.getRadius(d) + 12;
-            return "translate("+shiftRight+",0)";
-        })
-        .text((d) => { return d.name || d.group });
+        .classed("node-text", true);
+    nodeStyles.applyDefault(nodeEnterElements);
     nodeElements = nodeEnterElements.merge(nodeElements);
 
     hullElements.exit()
@@ -252,7 +251,7 @@ function updateGraph() {
         .attr("class", "hull")
         .attr("d", utils.drawCluster);
     hullEnterElements
-        .style("fill", (d: Node) => colorScale(d.group))
+        .style("fill", (d: Node) => constants.colorScale(d.group))
         .style("fill-opacity", 1e-6)
         .transition(utils.transitionLinearSecond)
         .style("fill-opacity", 0.3);
@@ -367,6 +366,8 @@ function onNodeClick(d: Node) {
     clearTimeout(nodeClickTimeoutId);
     nodeClickTimeoutId = null;
 
+    hasSearchedForNodes = false;
+
     // First check if the shift key is pressed
     if (d3.event.shiftKey) {
         // with shift key pressed, select multiple, or deselect an already selected node
@@ -379,9 +380,9 @@ function onNodeClick(d: Node) {
             highlightedNodes.push(d);
             PopulateInfoBox(d);
         }
-        highlightNodes(false);
+        highlightNodes();
     } else {
-        nodeClickTimeoutId = setTimeout(() => {
+        nodeClickTimeoutId = window.setTimeout(() => {
             // only do something if there wasnt a double-click
             if (nodeClickTimeoutId != null) {
                 clearTimeout(nodeClickTimeoutId);
@@ -389,7 +390,7 @@ function onNodeClick(d: Node) {
                 
                 PopulateInfoBox(d);
                 highlightedNodes = [ d ];
-                highlightNodes(false);
+                highlightNodes();
             }
         }, 200);
     }
@@ -411,16 +412,9 @@ function onNodeDblclick(d: Node) {
 
         // Clear any highlighted nodes (animation time causes issues if it's before the grouping)
         highlightedNodes = [];
-        highlightNodes(false);
+        hasSearchedForNodes = false;
+        highlightNodes();
     }
-}
-
-function nodeTextOpacity(d: Node): number {
-    let opacity = 0;
-    if (showAllDiagramLabels == true || utils.getRadius(d) >= 10) {
-        opacity = 1;
-    }
-    return opacity;
 }
 
 function ungroupNodes(d: Node) {
@@ -511,30 +505,10 @@ function regroupNodes(d: Node) {
     updateSimulation();
 }
 
-export function searchForNodes(searchText: string) {
-    if (searchText === "") {
-        highlightedNodes = [];
-    } else {
-        let matchedNodes = searchUtils.SearchNodes(searchText, nodeElements);
-        highlightedNodes = matchedNodes.data();
-    }
-    highlightNodes(true);
-}
-
-function highlightNodes(makeNodesStandout: boolean) {
+function highlightNodes() {
+    highlightedNodesChangedCallback(highlightedNodes.length > 0);
     if (highlightedNodes.length == 0) {
-        nodeElements.selectAll(".node-shape").transition()
-            .duration(750)
-            .attr("d", defaultSuperdupaPath.getPath)
-            .attr("stroke", (d: Node) => colorScale(d.group))
-            .attr("fill", (d: Node) => colorScale(d.group))
-            .style("stroke-opacity", 1)
-            .style("fill-opacity", 1);
-        nodeElements.selectAll(".node-text")
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 1);
+        nodeStyles.applyDefault(nodeElements);
         linkElements
             .transition()
                 .duration(750)
@@ -542,13 +516,13 @@ function highlightNodes(makeNodesStandout: boolean) {
         hullElements
             .transition()
                 .duration(750)
-                .style("fill", (d: Node) => colorScale(d.group))
+                .style("fill", (d: Node) => constants.colorScale(d.group))
                 .style("fill-opacity", 0.3);
     } else {
         let matchedNodesData = highlightedNodes;
         let matchedNodes = searchUtils.GetMatchedNodes(matchedNodesData, nodeElements);
-        let matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements);
-        let unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements);
+        let matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements, nodeStyles.showOnlyHighlighted);
+        let unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements, nodeStyles.showOnlyHighlighted);
         let neighbourNodes = searchUtils.GetNeighbourNodes(matchedNodesData, matchedLinks.data(), nodeElements);
         let highlightedAndNeighbourNodesData = matchedNodesData.concat(neighbourNodes.data());
         let unmatchedNodes = searchUtils.GetUnmatchedNodes(highlightedAndNeighbourNodesData, nodeElements);
@@ -558,75 +532,15 @@ function highlightNodes(makeNodesStandout: boolean) {
         // while originally I used easing, because we want to highlight already highlighted nodes I chose to use two transitions instead
         let eB = d3.easeBackOut.overshoot(10);
 
-        const highlightColor = '#32f272';
-        const everythingElseColor = '#31d8ea';
-        const everythingElseOpacity = 0.2;
-        
-        if (makeNodesStandout == true) {
-            let bigSuperdupaPath = new Superformula().type(() => "gear");
-            let highlightedSuperdupaPath = new Superformula().type(() => "gear");
-            matchedNodes.selectAll(".node-shape")
-                .transition()
-                .duration(550)
-                .attr("d", bigSuperdupaPath.size((d) => { 
-                    return 5 * utils.getHighlightedRadius(d); 
-                }).getPath)
-                .attr("stroke", (d: Node) => highlightColor)
-                .attr("fill", (d: Node) => highlightColor)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 1)
-                .transition()
-                .duration(450)
-                .attr("d", highlightedSuperdupaPath.size((d) => { 
-                    return 3 * utils.getHighlightedRadius(d); 
-                }).getPath);
+        if (hasSearchedForNodes == true) {
+            nodeStyles.applySearch(matchedNodes);
         } else {
-            let bigDefaultSuperdupaPath = new Superformula().type(utils.defaultNodeSuperformulaType);
-            matchedNodes.selectAll(".node-shape")
-                .transition()
-                .duration(450)
-                .attr("d", bigDefaultSuperdupaPath.size((d) => { 
-                    return 2 * utils.getHighlightedRadius(d); 
-                }).getPath)
-                .attr("stroke", (d: Node) => highlightColor)
-                .attr("fill", (d: Node) => highlightColor)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 1);
+            nodeStyles.applyHighlight(matchedNodes);
         }
-        
-        matchedNodes.selectAll(".node-text")
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 1);
-        
-        neighbourNodes.selectAll(".node-shape")
-            .transition()
-                .duration(750)
-                .attr("d", defaultSuperdupaPath.getPath)
-                .attr("stroke", (d: Node) => everythingElseColor)
-                .attr("fill", (d: Node) => everythingElseColor)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 1);
-        neighbourNodes.selectAll(".node-text")
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", 1)
-                .style("fill-opacity", 1);
 
-        unmatchedNodes.selectAll(".node-shape")
-            .transition()
-                .duration(750)
-                .attr("d", defaultSuperdupaPath.getPath)
-                .attr("stroke", (d: Node) => everythingElseColor)
-                .attr("fill", (d: Node) => everythingElseColor)
-                .style("stroke-opacity", everythingElseOpacity)
-                .style("fill-opacity", everythingElseOpacity);
-        unmatchedNodes.selectAll(".node-text")
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", 1e-6)
-                .style("fill-opacity", 1e-6);
+        nodeStyles.applyHighlightedNeighbour(neighbourNodes);
+
+        nodeStyles.applyUnhighlighted(unmatchedNodes);
 
         matchedLinks
             .transition()
@@ -635,24 +549,19 @@ function highlightNodes(makeNodesStandout: boolean) {
         unmatchedLinks
             .transition()
                 .duration(750)
-                .style("stroke-opacity", everythingElseOpacity);
+                .style("stroke-opacity", nodeStyles.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
 
         matchedHulls
             .transition()
                 .duration(750)
-                .style("fill", highlightColor)
-                .style("fill-opacity", 0.2);
+                .style("fill", constants.highlightColor)
+                .style("fill-opacity", nodeStyles.showOnlyHighlighted ? 0 : 0.2);
         unmatchedHulls
             .transition()
                 .duration(750)
-                .style("fill", everythingElseColor)
-                .style("fill-opacity", 0.08);
+                .style("fill", constants.everythingElseColor)
+                .style("fill-opacity", nodeStyles.showOnlyHighlighted ? 0 : 0.08);
     }
-}
-
-export function showAllLabels(show: boolean) {
-    showAllDiagramLabels = show;
-    d3.selectAll('.node-text').style('opacity', nodeTextOpacity);
 }
 
 // Info Box

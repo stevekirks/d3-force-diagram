@@ -36,64 +36,41 @@ export function GetMatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selec
 
 // Get the nodes not matching those highlighted
 export function GetUnmatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
-    let unmatchedNodes = nodeElements
-        .filter((d: Node) => {
-            let nodeNameOrGroup = utils.GetNodeNameOrGroup(d);
-            if (nodeNameOrGroup.length > 0) {
-                let matchesHighlightedNode = false;
-                for (let i = 0; i < highlightedNodes.length; i++) {
-                    let highlightedNode = highlightedNodes[i];
-                    let highlightedNodeNameOrGroup = utils.GetNodeNameOrGroup(highlightedNode);
-                    if (nodeNameOrGroup == highlightedNodeNameOrGroup) {
-                        matchesHighlightedNode = true;
-                        break;
-                    }
-                }
-                return !matchesHighlightedNode;
-            }
-            return false;
-        });
-    return unmatchedNodes;
+    return nodeElements.filter(a => GetMatchedNodes(highlightedNodes, nodeElements).data().indexOf(a) == -1);
 }
 
 // Get the links to the highlighted nodes
-export function GetMatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
+export function GetMatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
     let matchedLinks = linkElements
         .filter((l: Link) => {
             let linkSourceNameOrGroup = utils.GetLinkSourceNameOrGroup(l);
             let linkTargetNameOrGroup = utils.GetLinkTargetNameOrGroup(l);
+            let highlightedSourceFound = false;
+            let highlightedTargetFound = false;
             // Either the source of the target must be a highlighted node
             for (let i = 0; i < highlightedNodes.length; i++) {
                 let highlightedNode = highlightedNodes[i];
                 let nodeNameOrGroup = utils.GetNodeNameOrGroup(highlightedNode);
-                if (nodeNameOrGroup == linkSourceNameOrGroup || nodeNameOrGroup == linkTargetNameOrGroup) {
+                if (onlyLinksWithHighlightedSourceAndTarget == true) {
+                    if (nodeNameOrGroup == linkSourceNameOrGroup) {
+                        highlightedSourceFound = true;
+                    }
+                    if (nodeNameOrGroup == linkTargetNameOrGroup) {
+                        highlightedTargetFound = true;
+                    }
+                }
+                else if (nodeNameOrGroup == linkSourceNameOrGroup || nodeNameOrGroup == linkTargetNameOrGroup) {
                     return true;
                 }
             }
-            return false;
+            return highlightedSourceFound && highlightedTargetFound;
         });
     return matchedLinks;
 }
 
 // Get the links with no direct connection to the highlighted nodes
-export function GetUnmatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
-    let unmatchedLinks = linkElements
-        .filter((l: Link) => {
-            let linkSourceNameOrGroup = utils.GetLinkSourceNameOrGroup(l);
-            let linkTargetNameOrGroup = utils.GetLinkTargetNameOrGroup(l);
-            // Neither the source of the target must be a highlighted node
-            let matchesHighlightedNode = false;
-            for (let i = 0; i < highlightedNodes.length; i++) {
-                let highlightedNode = highlightedNodes[i];
-                let nodeNameOrGroup = utils.GetNodeNameOrGroup(highlightedNode);
-                if (nodeNameOrGroup == linkSourceNameOrGroup || nodeNameOrGroup == linkTargetNameOrGroup) {
-                    matchesHighlightedNode = true;
-                    break;
-                }
-            }
-            return !matchesHighlightedNode;
-        });
-    return unmatchedLinks;
+export function GetUnmatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
+    return linkElements.filter(a => GetMatchedLinks(highlightedNodes, linkElements, onlyLinksWithHighlightedSourceAndTarget).data().indexOf(a) == -1);
 }
 
 // Get the hulls with highlighted nodes inside
@@ -115,22 +92,7 @@ export function GetMatchedHulls(highlightedNodes: Node[], hullElements: d3.Selec
 
 // Get the hulls with highlighted nodes inside
 export function GetUnmatchedHulls(highlightedHulls: Hull[], hullElements: d3.Selection<d3.BaseType, Hull, d3.BaseType, any>): d3.Selection<d3.BaseType, Hull, d3.BaseType, any> {
-    let unmatchedHulls = hullElements
-        .filter((h: Hull) => {
-            if (h.group.length > 0) {
-                let matchesHighlightedHull = false;
-                for (let i = 0; i < highlightedHulls.length; i++) {
-                    let highlightedHull = highlightedHulls[i];
-                    if (h.group == highlightedHull.group) {
-                        matchesHighlightedHull = true;
-                        break;
-                    }
-                }
-                return !matchesHighlightedHull;
-            }
-            return false;
-        });
-    return unmatchedHulls;
+    return hullElements.filter(a => GetMatchedHulls(highlightedHulls, hullElements).data().indexOf(a) == -1);
 }
 
 export function GetNeighbourNodes(highlightedNodes: Node[], highlightedLinks: Link[],

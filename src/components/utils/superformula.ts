@@ -1,12 +1,13 @@
 // Modified from source https://github.com/d3/d3-plugins/blob/master/superformula/superformula.js
 import * as d3 from 'd3';
+import { Node } from '../data-interfaces';
 
 let _symbol = d3.symbol(),
     _line = d3.line();
 
 class Superformula {
-    _type: (d: any) => string;
-    _size: (d: any) => number;
+    _type: (d: Node) => string;
+    _size: (d: Node) => number;
     _segments: number;
 
     constructor() {
@@ -19,11 +20,11 @@ class Superformula {
         this.getPath = this.getPath.bind(this);
     }
     
-    type(f: (d: any) => string){
+    type(f: (d: Node) => string){
         this._type = f;
         return this;
     }
-    size(f: (d: any) => number){
+    size(f: (d: Node) => number){
         this._size = f;
         return this;
     }
@@ -32,13 +33,13 @@ class Superformula {
         return this;
     }
 
-    getPath(d: any): string {
+    getPath(d: Node, sizeMultiplier?: number): string {
         let sType: SuperformulaTypeObject;
         let typeKey = this._type(d);
         if (_superformulaTypes.hasOwnProperty(typeKey)) {
             sType = _superformulaTypes[typeKey];
         }
-        return this._superformulaPath(sType, this._segments, this._size(d));
+        return this._superformulaPath(sType, this._segments, this._size(d) * (sizeMultiplier || 1));
     }
 
     allTypes(): string[] {

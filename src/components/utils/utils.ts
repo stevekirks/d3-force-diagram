@@ -6,6 +6,8 @@ import { Link, Node, Hull } from '../data-interfaces';
 
 export const nodeRadiusSizes = { default: 3, node: 3, group: 7 };
 export const hullOffset = 15;
+export const nodeStateNormal = "node-state-normal";
+export const nodeStateHovered = "node-state-hover";
             
 export function defaultNodeSuperformulaType(d: Node) {
     var shapeType = "circle";
@@ -225,4 +227,9 @@ export function findIndex(arr: any[], callback: (arg: any) => boolean): number {
         }
     }
     return -1;
+}
+
+export function nodeTextShiftRight(d: Node, multiplier?: number) {
+    let shiftRight = (getRadius(d) + 12) * (multiplier || 1);
+    return "translate("+shiftRight+",0)";
 }

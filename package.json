@@ -4,29 +4,29 @@
     "build": "SET NODE_ENV=production & webpack --env.prod=true"
   },
   "dependencies": {
-    "@types/d3": "^4.9.0",
+    "@types/d3": "^4.12.0",
     "@types/d3-scale-chromatic": "^1.0.2",
-    "@types/react": "^15.0.35",
-    "@types/react-dom": "^15.5.1",
-    "d3": "^4.9.1",
+    "@types/react": "^16.0.35",
+    "@types/react-dom": "^16.0.3",
+    "d3": "^4.12.2",
     "d3-scale-chromatic": "^1.1.1",
-    "react": "^15.6.1",
-    "react-dom": "^15.6.1"
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
   },
   "name": "d3-starting",
   "version": "1.0.0",
   "main": "index.tsx",
   "license": "MIT",
   "devDependencies": {
-    "awesome-typescript-loader": "^3.2.1",
-    "css-loader": "^0.28.4",
+    "awesome-typescript-loader": "^3.4.1",
+    "css-loader": "^0.28.9",
     "extract-text-webpack-plugin": "^3.0.2",
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.6",
     "source-map-loader": "^0.2.1",
-    "style-loader": "^0.18.2",
-    "typescript": "^2.4.1",
-    "webpack": "^3.1.0",
-    "webpack-dev-server": "^2.5.1"
+    "style-loader": "^0.19.1",
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
   }
 }
