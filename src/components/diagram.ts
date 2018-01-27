@@ -103,8 +103,8 @@ function zoomed() {
 let simulation: d3.Simulation<Node, Link>;
 
 function prepare() {
-    diagramWidth = document.getElementById("diagram").offsetWidth * 0.9;
-    diagramHeight = document.getElementById("diagram").offsetWidth * 0.3;
+    diagramWidth = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")).width.replace('px', ''))) - 10;
+    diagramHeight = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")).height.replace('px', ''))) - 10;
 
     svg = d3.select('#diagram')
                 .append("svg")

@@ -64,20 +64,11 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     render() {
-        let chkboxShowOnlyHighlighted = <span></span>;
-        if (this.state.hasHighlightedNodes == true) {
-            chkboxShowOnlyHighlighted = <div>
-                <span className="spacer"></span>
-                <input id="chkboxShowOnlyHighlighted" type="checkbox" checked={this.state.showOnlyHighlighted} onChange={this.handleShowOnlyHighlighted} />
-                <label htmlFor="chkboxShowOnlyHighlighted">Show only highlighted</label>
-            </div>;
-        }
+        return <div>
 
-        return <div className="box">
-
-            <div className="header">
-                <h1>Diagram</h1>
-                <div className="config-box">
+            <div className="header row">
+                <h1 className="col-6">Service Registry Diagram</h1>
+                <div className="col-6 config-box">
                     <label>Search</label>
                     <input name="inputSearch" type="text" 
                         onChange={this.handleInputHighlightText} 
@@ -92,7 +83,12 @@ export class App extends React.Component<AppProps, AppState> {
                         onChange={this.handleShowAllLabels} 
                         disabled={this.state.showOnlyHighlighted} />
                     <label htmlFor="chkboxShowAllLabels">Show all labels</label>
-                    {chkboxShowOnlyHighlighted}
+                    <span className="spacer"></span>
+                    <input id="chkboxShowOnlyHighlighted" type="checkbox" 
+                        checked={this.state.showOnlyHighlighted} 
+                        onChange={this.handleShowOnlyHighlighted}
+                        disabled={!this.state.hasHighlightedNodes} />
+                    <label htmlFor="chkboxShowOnlyHighlighted">Show only highlighted</label>
                 </div>
             </div>
 
