@@ -241,6 +241,16 @@ export class DiagramStyles {
                 .style("stroke-opacity", 1);
     }
 
+    applyLinkMouseOver(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+        linkEles
+            .attr("stroke-width", constants.defaultLinkStrokeWidth * 3);
+    }
+
+    applyLinkMouseOut(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+        linkEles
+            .attr("stroke-width", constants.defaultLinkStrokeWidth);
+    }
+
     applyLinkUnhighlighted(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .transition()

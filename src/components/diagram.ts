@@ -121,15 +121,13 @@ function prepare() {
     svgDefs = svg.append("defs");
 
     svg.append("g") // first so it's not on top
-			.attr("class", "hulls");
+			.classed("hulls", true);
 
     svg.append("g")
-            .attr("class", "links")
-            .selectAll("line");
+            .classed("links", true);
 
     svg.append("g") // last so it's on top
-            .classed("nodes", true)
-            .selectAll("path");
+            .classed("nodes", true);
 
     //tooltip = new Tooltip(d3.select('#diagram'));
 
@@ -195,11 +193,11 @@ function updateGraph() {
     let linkEnterElements = linkElements.enter().append("line");
     linkEnterElements
         .on("mouseover", function (d, i) { // note function (not lambda) is reqd for 'this'
-            d3.select(this).attr("stroke-width", constants.defaultLinkStrokeWidth * 3);
+            diagramStyles.applyLinkMouseOver(d3.select(this));
             //tooltip.Show(d3.select(this), 'a message');
         })
         .on("mouseout", function (d, i) {
-            d3.select(this).attr("stroke-width", constants.defaultLinkStrokeWidth);
+            diagramStyles.applyLinkMouseOut(d3.select(this));
             //tooltip.Hide();
         })
         .on('click', PopulateInfoBox)
