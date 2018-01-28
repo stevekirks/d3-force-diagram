@@ -4,7 +4,13 @@ import './app.scss';
 import './forms.scss';
 
 export interface AppProps { }
-export interface AppState { inputHighlightText: string, showAllLabels: boolean, showOnlyHighlighted: boolean, hasHighlightedNodes: boolean }
+export interface AppState { 
+    inputHighlightText: string, 
+    showAllLabels: boolean, 
+    showOnlyHighlighted: boolean, 
+    hasHighlightedNodes: boolean,
+    invertBackground: boolean
+}
 
 export class App extends React.Component<AppProps, AppState> {
 
@@ -14,7 +20,8 @@ export class App extends React.Component<AppProps, AppState> {
             inputHighlightText : '',
             showAllLabels: false,
             showOnlyHighlighted: false,
-            hasHighlightedNodes: false
+            hasHighlightedNodes: false,
+            invertBackground: false
         }
 
         this.handleInputHighlightText = this.handleInputHighlightText.bind(this);
@@ -23,6 +30,7 @@ export class App extends React.Component<AppProps, AppState> {
         this.highlightedNodeCountChanged = this.highlightedNodeCountChanged.bind(this);
         this.updateShowAllLabels = this.updateShowAllLabels.bind(this);
         this.updateInputHighlightText = this.updateInputHighlightText.bind(this);
+        this.handleInvertBackground = this.handleInvertBackground.bind(this);
     }
 
     componentDidMount() {
@@ -63,13 +71,19 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
+    handleInvertBackground(event: React.ChangeEvent<HTMLInputElement>) {
+        let newVal = event.currentTarget.checked;
+        this.setState({invertBackground: newVal});
+        diagram.invertBackground(newVal);
+    }
+
     render() {
         return <div>
 
             <div className="header row">
-                <h1 className="col-6">Service Registry Diagram</h1>
-                <div className="col-6 config-box">
-                    <label>Search</label>
+                <h1 className="col-4">Service Registry Diagram</h1>
+                <div className="col-8 config-box">
+                    <label className={this.state.showOnlyHighlighted ? "disabled" : ""}>Search</label>
                     <input name="inputSearch" type="text" 
                         onChange={this.handleInputHighlightText} 
                         value={this.state.inputHighlightText} 
@@ -77,23 +91,25 @@ export class App extends React.Component<AppProps, AppState> {
                     <button id="btnHighlight" 
                         onClick={() => diagram.searchForNodes(this.state.inputHighlightText)}
                         disabled={this.state.showOnlyHighlighted}>Highlight</button>
-                    <span className="spacer"></span>
                     <input id="chkboxShowAllLabels" type="checkbox" 
                         checked={this.state.showAllLabels} 
                         onChange={this.handleShowAllLabels} 
                         disabled={this.state.showOnlyHighlighted} />
                     <label htmlFor="chkboxShowAllLabels">Show all labels</label>
-                    <span className="spacer"></span>
                     <input id="chkboxShowOnlyHighlighted" type="checkbox" 
                         checked={this.state.showOnlyHighlighted} 
                         onChange={this.handleShowOnlyHighlighted}
                         disabled={!this.state.hasHighlightedNodes} />
                     <label htmlFor="chkboxShowOnlyHighlighted">Show only highlighted</label>
+                    <input id="chkboxInvertBackground" type="checkbox" 
+                        checked={this.state.invertBackground} 
+                        onChange={this.handleInvertBackground} />
+                    <label htmlFor="chkboxInvertBackground">Invert Background</label>
                 </div>
             </div>
 
             <div className="content">
-                <div id="diagram"></div>
+                <div id="diagram" className={this.state.invertBackground ? "inverted" : ""}></div>
                 <div id="info-box">
                     <h2 className="title"></h2>
                     <div className="notes"></div>

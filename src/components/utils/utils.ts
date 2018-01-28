@@ -233,3 +233,15 @@ export function nodeTextShiftRight(d: Node, multiplier?: number) {
     let shiftRight = (getRadius(d) + 12) * (multiplier || 1);
     return "translate("+shiftRight+",0)";
 }
+
+export function nodeTextOpacity(d: Node): number {
+    let opacity = 0;
+    if (getRadius(d) >= 10) {
+        opacity = 1;
+    }
+    return opacity;
+}
+
+export function darkenIfInvertedBackground(color: string, isInverted: boolean): string {
+    return isInverted ? d3.hsl(color).darker(2).toString() : color;
+}

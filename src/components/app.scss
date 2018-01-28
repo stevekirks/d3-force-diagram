@@ -1,3 +1,5 @@
+@import "variables";
+
 html {
   height: 100%;
 }
@@ -26,8 +28,8 @@ h1 {
     pointer-events: none;
   }
   .node-text {
-    fill: white;
-    stroke: white;
+    fill: $inputColorHighlight;
+    stroke: $inputColorHighlight;
     stroke-width: 0px;
     font-size: 14px;
     font-weight: normal;
@@ -48,10 +50,6 @@ path.hull {
   justify-content: flex-end;
   align-items: center;
   align-content: center;
-  
-  .spacer {
-    margin-left: 20px;
-  }
 
   div {
     display: inline;
@@ -64,6 +62,16 @@ path.hull {
   padding: 0;
   background-color: #090c26;
   overflow: hidden;
+}
+
+.inverted {
+  &#diagram {
+    background-color: $backgroundColorDefault;
+  }
+  .node-text {
+    fill: $inputColorDefault;
+    stroke: $inputColorDefault;
+  }
 }
 
 #info-box {
@@ -166,9 +174,9 @@ path.hull {
 
 .col-4 {
   -webkit-box-flex: 0;
-  -ms-flex: 0 0 33.333333%;
-  flex: 0 0 33.333333%;
-  max-width: 33.333333%;
+  -ms-flex: 0 0 33%;
+  flex: 0 0 33%;
+  max-width: 33%;
 }
 
 .col-6 {
@@ -180,7 +188,7 @@ path.hull {
 
 .col-8 {
   -webkit-box-flex: 0;
-  -ms-flex: 0 0 66.666666%;
-  flex: 0 0 66.666666%;
-  max-width: 66.666666%;
+  -ms-flex: 0 0 66%;
+  flex: 0 0 66%;
+  max-width: 66%;
 }

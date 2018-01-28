@@ -6,7 +6,8 @@ import * as searchUtils from './utils/search-matching';
 import { Link, Node, Hull } from './data-interfaces';
 import * as constants from './constants';
 import Tooltip from './utils/tooltip';
-import { NodeStyles } from './node-styles';
+import { DiagramStyles } from './diagram-styles';
+import { linkGradientColorEnd } from './constants';
 declare var __DATA_SERVICES_URL__: string;
 
 export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: boolean) => void) {
@@ -56,7 +57,12 @@ export function showAllLabels(show: boolean) {
 }
 
 export function showOnlyHighlighted(show: boolean) {
-    nodeStyles.showOnlyHighlighted = show;
+    diagramStyles.showOnlyHighlighted = show;
+    highlightNodes();
+}
+
+export function invertBackground(invert: boolean) {
+    diagramStyles.invertedBackground = invert;
     highlightNodes();
 }
 
@@ -90,7 +96,7 @@ const defaultSuperdupaPath = new Superformula()
 			.size(utils.defaultNodeSuperformulaSize)
             .segments(360);
 
-const nodeStyles = new NodeStyles();
+const diagramStyles = new DiagramStyles();
 
 // zooming
 let zoom: d3.ZoomBehavior<Element, {}>;
@@ -176,42 +182,29 @@ function updateGraph() {
 
     linkGradients.exit().remove();
     let linkGradientsEnter = linkGradients.enter()
-        .append("linearGradient")
-            .attr("id", utils.getLinkGradientId)
-            .attr("gradientUnits", "userSpaceOnUse");
-    linkGradientsEnter
-        .append("stop")
-            .attr("offset", "0%")
-            .attr("stop-color", "#006eff");
-    linkGradientsEnter
-        .append("stop")
-            .attr("offset", "100%")
-            .attr("stop-color", "#87eeff");
+        .append("linearGradient");
+    linkGradientsEnter.append("stop");
+    linkGradientsEnter.append("stop");
+    diagramStyles.applyLinkGradientDefault(linkGradientsEnter);
     linkGradients = linkGradientsEnter.merge(linkGradients);
 
     linkElements.exit()
         .transition(utils.transitionLinearSecond)
         .style("stroke-opacity", 1e-6)
         .remove();
-    const defaultLinkStrokeWidth = 1.5;
-    let linkEnterElements = linkElements.enter().append("line")
-        .attr("stroke-width", defaultLinkStrokeWidth)
-        .attr("stroke", function (d) {
-            return "url(#" + utils.getLinkGradientId(d) + ")";
-        });
+    let linkEnterElements = linkElements.enter().append("line");
     linkEnterElements
         .on("mouseover", function (d, i) { // note function (not lambda) is reqd for 'this'
-            d3.select(this).attr("stroke-width", defaultLinkStrokeWidth * 3);
-            //tooltip.Show(d3.select(this), 'wadddddd up');
+            d3.select(this).attr("stroke-width", constants.defaultLinkStrokeWidth * 3);
+            //tooltip.Show(d3.select(this), 'a message');
         })
         .on("mouseout", function (d, i) {
-            d3.select(this).attr("stroke-width", defaultLinkStrokeWidth);
+            d3.select(this).attr("stroke-width", constants.defaultLinkStrokeWidth);
             //tooltip.Hide();
         })
         .on('click', PopulateInfoBox)
-        .style("stroke-opacity", 1e-6)
-        .transition(utils.transitionLinearSecond)
-        .style("stroke-opacity", 1);
+        .style("stroke-opacity", 1e-6);
+    diagramStyles.applyLinkDefault(linkEnterElements);
     linkElements = linkEnterElements.merge(linkElements);
 
     nodeElements.exit()
@@ -228,10 +221,10 @@ function updateGraph() {
         .classed("node", true);
     nodeEnterElements
         .on('mouseover', function (d, i) { // function (not lambda) is reqd for 'this'
-            nodeStyles.applyMouseOver(d3.select(this));
+            diagramStyles.applyNodeMouseOver(d3.select(this));
         })
         .on('mouseout', function (d, i) {
-            nodeStyles.applyMouseOut(d3.select(this));
+            diagramStyles.applyNodeMouseOut(d3.select(this));
         })
         .on('click', onNodeClick)
         .on('dblclick', onNodeDblclick)
@@ -240,7 +233,7 @@ function updateGraph() {
         .classed("node-shape", true);
     nodeEnterElements.append("text")
         .classed("node-text", true);
-    nodeStyles.applyDefault(nodeEnterElements);
+    diagramStyles.applyNodeDefault(nodeEnterElements);
     nodeElements = nodeEnterElements.merge(nodeElements);
 
     hullElements.exit()
@@ -248,13 +241,9 @@ function updateGraph() {
         .style("fill-opacity", 1e-6)
         .remove();
     let hullEnterElements = hullElements.enter().append("path")
-        .attr("class", "hull")
-        .attr("d", utils.drawCluster);
-    hullEnterElements
-        .style("fill", (d: Node) => constants.colorScale(d.group))
-        .style("fill-opacity", 1e-6)
-        .transition(utils.transitionLinearSecond)
-        .style("fill-opacity", 0.3);
+        .classed("hull", true)
+        .style("fill-opacity", 1e-6);
+    diagramStyles.applyHullDefault(hullEnterElements);
     hullElements = hullEnterElements.merge(hullElements);
 }
 
@@ -508,21 +497,17 @@ function regroupNodes(d: Node) {
 function highlightNodes() {
     highlightedNodesChangedCallback(highlightedNodes.length > 0);
     if (highlightedNodes.length == 0) {
-        nodeStyles.applyDefault(nodeElements);
-        linkElements
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", 1);
-        hullElements
-            .transition()
-                .duration(750)
-                .style("fill", (d: Node) => constants.colorScale(d.group))
-                .style("fill-opacity", 0.3);
+        diagramStyles.applyNodeDefault(nodeElements);
+        diagramStyles.applyLinkDefault(linkElements);
+        diagramStyles.applyLinkGradientDefault(linkGradients);
+        diagramStyles.applyHullDefault(hullElements);
     } else {
         let matchedNodesData = highlightedNodes;
         let matchedNodes = searchUtils.GetMatchedNodes(matchedNodesData, nodeElements);
-        let matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements, nodeStyles.showOnlyHighlighted);
-        let unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements, nodeStyles.showOnlyHighlighted);
+        let matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
+        let matchedLinkGradients = searchUtils.GetMatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
+        let unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
+        let unmatchedLinkGradients = searchUtils.GetUnmatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
         let neighbourNodes = searchUtils.GetNeighbourNodes(matchedNodesData, matchedLinks.data(), nodeElements);
         let highlightedAndNeighbourNodesData = matchedNodesData.concat(neighbourNodes.data());
         let unmatchedNodes = searchUtils.GetUnmatchedNodes(highlightedAndNeighbourNodesData, nodeElements);
@@ -533,34 +518,19 @@ function highlightNodes() {
         let eB = d3.easeBackOut.overshoot(10);
 
         if (hasSearchedForNodes == true) {
-            nodeStyles.applySearch(matchedNodes);
+            diagramStyles.applyNodeSearch(matchedNodes);
         } else {
-            nodeStyles.applyHighlight(matchedNodes);
+            diagramStyles.applyNodeHighlight(matchedNodes);
         }
 
-        nodeStyles.applyHighlightedNeighbour(neighbourNodes);
-
-        nodeStyles.applyUnhighlighted(unmatchedNodes);
-
-        matchedLinks
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", 1);
-        unmatchedLinks
-            .transition()
-                .duration(750)
-                .style("stroke-opacity", nodeStyles.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
-
-        matchedHulls
-            .transition()
-                .duration(750)
-                .style("fill", constants.highlightColor)
-                .style("fill-opacity", nodeStyles.showOnlyHighlighted ? 0 : 0.2);
-        unmatchedHulls
-            .transition()
-                .duration(750)
-                .style("fill", constants.everythingElseColor)
-                .style("fill-opacity", nodeStyles.showOnlyHighlighted ? 0 : 0.08);
+        diagramStyles.applyNodeHighlightedNeighbour(neighbourNodes);
+        diagramStyles.applyNodeUnhighlighted(unmatchedNodes);
+        diagramStyles.applyLinkHighlight(matchedLinks);
+        diagramStyles.applyLinkUnhighlighted(unmatchedLinks);
+        diagramStyles.applyLinkGradientHighlight(matchedLinkGradients);
+        diagramStyles.applyLinkGradientUnhighlighted(unmatchedLinkGradients);
+        diagramStyles.applyHullHighlight(matchedHulls);
+        diagramStyles.applyHullUnhighlighted(unmatchedHulls);
     }
 }
 

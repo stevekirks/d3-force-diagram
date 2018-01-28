@@ -1,5 +1,4 @@
-$backgroundColorHighlight: #f35429;
-$inputColor: white;
+@import "variables";
 
 input {
   border-style: none;
@@ -18,19 +17,34 @@ button {
   line-height: 22px;
   margin: 5px;
   border-radius: 1px;
+  background-color: $backgroundColorDefault;
+  color: $inputColorDefault;
   &:focus {
     outline-color: $backgroundColorHighlight;
   }
   &:hover {
     background-color: $backgroundColorHighlight;
-    color: $inputColor;
+    color: $inputColorHighlight;
   }
   &:active {
     background-color:darken($backgroundColorHighlight, 20%);
-    color: $inputColor;
+    color: $inputColorHighlight;
+  }
+  &:disabled {
+    background-color: darken($backgroundColorDefault, 20%);
+    color: $inputColorDefault;
   }
 }
 // End Button
+input {
+  &:disabled {
+    background-color: darken($backgroundColorDefault, 20%);
+  }
+}
+
+.disabled {
+  color: darken($backgroundColorDefault, 20%);
+}
 
 // Start Checkbox
 input[type="checkbox"] {
@@ -40,6 +54,7 @@ input[type="checkbox"] {
   & + label {
     position: relative;
     cursor: pointer;
+    margin-left: 20px;
   }
 
   // Box.
@@ -50,7 +65,7 @@ input[type="checkbox"] {
     vertical-align: text-top;
     width: 20px;
     height: 20px;
-    background: $inputColor;
+    background: $inputColorHighlight;
   }
 
   // Box hover
@@ -70,14 +85,14 @@ input[type="checkbox"] {
   
   // Disabled state label.
   &:disabled + label {
-    color: #b8b8b8;
+    color: darken($backgroundColorDefault, 20%);
     cursor: auto;
   }
 
   // Disabled box.
   &:disabled + label:before {
     box-shadow: none;
-    background: #ddd;
+    background: darken($backgroundColorDefault, 20%);
   }
 
   // Checkmark. Could be replaced with an image
@@ -86,16 +101,16 @@ input[type="checkbox"] {
     position: absolute;
     left: 5px;
     top: 9px;
-    background: $inputColor;
+    background: $inputColorHighlight;
     width: 2px;
     height: 2px;
     box-shadow: 
-      2px 0 0 $inputColor,
-      4px 0 0 $inputColor,
-      4px -2px 0 $inputColor,
-      4px -4px 0 $inputColor,
-      4px -6px 0 $inputColor,
-      4px -8px 0 $inputColor;
+      2px 0 0 $inputColorHighlight,
+      4px 0 0 $inputColorHighlight,
+      4px -2px 0 $inputColorHighlight,
+      4px -4px 0 $inputColorHighlight,
+      4px -6px 0 $inputColorHighlight,
+      4px -8px 0 $inputColorHighlight;
     transform: rotate(45deg);
   }
 }
