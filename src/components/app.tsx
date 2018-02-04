@@ -9,7 +9,8 @@ export interface AppState {
     showAllLabels: boolean, 
     showOnlyHighlighted: boolean, 
     hasHighlightedNodes: boolean,
-    invertBackground: boolean
+    invertBackground: boolean,
+    hasForceSimulation: boolean
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -21,7 +22,8 @@ export class App extends React.Component<AppProps, AppState> {
             showAllLabels: false,
             showOnlyHighlighted: false,
             hasHighlightedNodes: false,
-            invertBackground: false
+            invertBackground: false,
+            hasForceSimulation: true
         }
 
         this.handleInputHighlightText = this.handleInputHighlightText.bind(this);
@@ -31,6 +33,7 @@ export class App extends React.Component<AppProps, AppState> {
         this.updateShowAllLabels = this.updateShowAllLabels.bind(this);
         this.updateInputHighlightText = this.updateInputHighlightText.bind(this);
         this.handleInvertBackground = this.handleInvertBackground.bind(this);
+        this.handleHasForceSimulation = this.handleHasForceSimulation.bind(this);
     }
 
     componentDidMount() {
@@ -77,6 +80,12 @@ export class App extends React.Component<AppProps, AppState> {
         diagram.invertBackground(newVal);
     }
 
+    handleHasForceSimulation(event: React.ChangeEvent<HTMLInputElement>) {
+        let newVal = event.currentTarget.checked;
+        this.setState({hasForceSimulation: newVal});
+        diagram.setHasForceSimulation(newVal);
+    }
+
     render() {
         return <div>
 
@@ -105,6 +114,10 @@ export class App extends React.Component<AppProps, AppState> {
                         checked={this.state.invertBackground} 
                         onChange={this.handleInvertBackground} />
                     <label htmlFor="chkboxInvertBackground">Invert Background</label>
+                    <input id="chkboxHasForceSimulation" type="checkbox" 
+                        checked={this.state.hasForceSimulation} 
+                        onChange={this.handleHasForceSimulation} />
+                    <label htmlFor="chkboxHasForceSimulation">Force</label>
                 </div>
             </div>
 

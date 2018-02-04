@@ -66,6 +66,11 @@ export function invertBackground(invert: boolean) {
     highlightNodes();
 }
 
+export function setHasForceSimulation(dropForce: boolean) {
+    hasForceSimulation = dropForce;
+    updateSimulation();
+}
+
 let highlightedNodesChangedCallback: (hasHighlightedNodes: boolean) => void;
 
 let nodes: Node[];
@@ -88,6 +93,7 @@ let svg: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 let svgDefs: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 
 let hasSearchedForNodes: boolean = false;
+let hasForceSimulation: boolean = true;
 
 //let tooltip: Tooltip; // Not currently used, but it works if needed
 
@@ -169,7 +175,40 @@ function prepare() {
         .force("y", d3.forceY(diagramHeight / 2));
 }
 
-function updateGraph() {
+function tickHulls() {
+    hullElements.data(utils.convexHulls(nodes, utils.getGroup, utils.hullOffset))
+        .attr("d", utils.drawCluster);
+}
+
+function tickLinks() {
+    linkElements
+        .attr("x1", (d: Link) => { 
+            return utils.isNodeNotString(d.source) ? d.source.x : 0; 
+        })
+        .attr("y1", (d: Link) => { 
+            return utils.isNodeNotString(d.source) ? d.source.y : 0;
+        })
+        .attr("x2", (d: Link) => { 
+            return utils.isNodeNotString(d.target) ? d.target.x : 0; 
+        })
+        .attr("y2", (d: Link) => { 
+            return utils.isNodeNotString(d.target) ? d.target.y : 0; 
+        });
+    linkGradients
+        .attr("x1", (d: Link) => { 
+            return utils.isNodeNotString(d.source) ? d.source.x : 0; 
+        })
+        .attr("y1", (d: Link) => { 
+            return utils.isNodeNotString(d.source) ? d.source.y : 0; })
+        .attr("x2", (d: Link) => { 
+            return utils.isNodeNotString(d.target) ? d.target.x : 0; 
+        })
+        .attr("y2", (d: Link) => { 
+            return utils.isNodeNotString(d.target) ? d.target.y : 0; 
+        });
+}
+
+function updateSimulation() {
     linkElements = svg.select(".links").selectAll("line").data(links, utils.getLinkGradientId);
     linkGradients = svgDefs.selectAll("linearGradient").data(links, utils.getLinkGradientId);
 
@@ -211,7 +250,7 @@ function updateGraph() {
         .style("fill-opacity", 1e-6)
         .remove();
     let drager: d3.DragBehavior<any, any, any> = d3.drag();
-    drager.on("start", dragstarted)
+    drager
         .on("drag", dragged)
         .on("end", dragended);
     let nodeEnterElements = nodeElements.enter()
@@ -243,17 +282,14 @@ function updateGraph() {
         .style("fill-opacity", 1e-6);
     diagramStyles.applyHullDefault(hullEnterElements);
     hullElements = hullEnterElements.merge(hullElements);
-}
-
-function updateSimulation() {
-    updateGraph();
-
+    
     biggestNodePerGroup = utils.getBiggestNodesPerGroup(nodes, links);
 
     simulation.nodes(nodes)
         .on("tick", () => {
             let alpha = simulation.alpha();
 
+            // Force the node groups to cluster
             for (let n1 = 0; n1 < nodes.length; n1++) {
                 let d = nodes[n1];
                 if (d.group) {
@@ -261,49 +297,32 @@ function updateSimulation() {
                     if (biggestNode !== d) {
                         let x1 = d.x - biggestNode.x;
                         let y1 = d.y - biggestNode.y;
-                        let l = Math.sqrt(x1 * x1 + y1 * y1);
-                        let r = utils.getRadius(d) + utils.getRadius(biggestNode);
+                        let l = Math.sqrt(x1 * x1 + y1 * y1); // dist between node and biggest node
+                        let r = (utils.getRadius(d) * 1.6) + utils.getRadius(biggestNode); // ideal dist between node and biggest node
                         if (l != r) {
-                            let ld = (((l - r) / l) * alpha);
-                            x1 *= ld;
-                            y1 *= ld;
-                            nodes[n1].x -= (x1 * 2.8);
-                            nodes[n1].y -= (y1 * 2.8);
-                            biggestNode.x += x1;
-                            biggestNode.y += y1;
+                            let alphaMultiplier = (alpha / 2) + 0.5; // want decay, but not much
+                            let l1 = l - r;
+                            let t = (l1 / l);
+                            let xr = ((1-t) * biggestNode.x) + (t * d.x);
+                            let yr = ((1-t) * biggestNode.y) + (t * d.y);
+                            let xd = d.x - xr;
+                            let yd = d.y - yr;
+                            nodes[n1].x -= (xd * 0.49 * alphaMultiplier);
+                            nodes[n1].y -= (yd * 0.49 * alphaMultiplier);
+                            let bxr = ((1-t) * d.x) + (t * biggestNode.x);
+                            let byr = ((1-t) * d.y) + (t * biggestNode.y);
+                            let bxd = biggestNode.x - bxr;
+                            let byd = biggestNode.y - byr;
+                            biggestNode.x -= (bxd * 0.49 * alphaMultiplier);
+                            biggestNode.y -= (byd * 0.49 * alphaMultiplier);
                         }
                     }
                 }
             }
 
-            hullElements.data(utils.convexHulls(nodes, utils.getGroup, utils.hullOffset))
-                .attr("d", utils.drawCluster);
+            tickHulls();
 
-            linkElements
-                .attr("x1", (d: Link) => { 
-                    return utils.isNodeNotString(d.source) ? d.source.x : 0; 
-                })
-                .attr("y1", (d: Link) => { 
-                    return utils.isNodeNotString(d.source) ? d.source.y : 0;
-                })
-                .attr("x2", (d: Link) => { 
-                    return utils.isNodeNotString(d.target) ? d.target.x : 0; 
-                })
-                .attr("y2", (d: Link) => { 
-                    return utils.isNodeNotString(d.target) ? d.target.y : 0; 
-                });
-            linkGradients
-                .attr("x1", (d: Link) => { 
-                    return utils.isNodeNotString(d.source) ? d.source.x : 0; 
-                })
-                .attr("y1", (d: Link) => { 
-                    return utils.isNodeNotString(d.source) ? d.source.y : 0; })
-                .attr("x2", (d: Link) => { 
-                    return utils.isNodeNotString(d.target) ? d.target.x : 0; 
-                })
-                .attr("y2", (d: Link) => { 
-                    return utils.isNodeNotString(d.target) ? d.target.y : 0; 
-                });
+            tickLinks();
 
             nodeElements
                 .attr("transform", (d: Node) => {
@@ -314,44 +333,57 @@ function updateSimulation() {
                 });
         });
     simulation.force<d3.ForceLink<Node, Link>>('link').links(links);
-    simulation.alphaTarget(0.05).restart();
+    utils.simulationAlpha(simulation);
+    if (hasForceSimulation) {
+        simulation.restart();
+    } else {
+        simulation.stop();
+    }
 
     // set timeout so the diagram doesn't just keep circling forever
     setTimeout(() => {
         simulation.alphaTarget(0);
-    }, 3000);
-}
-
-function dragstarted(d: Node) {
-    d.fx = d.x;
-    d.fy = d.y;
+    }, 2000);
 }
 
 let dragSimulationRestarted = false;
+let nodeClickTimeoutId: number = null;
+let nodeDragTimeoutId: number = null;
 
 function dragged(d: Node) {
-    if (!dragSimulationRestarted) {
-        simulation.alphaTarget(0.3).restart();
-        dragSimulationRestarted = true;
+    if (hasForceSimulation) {
+        if (!dragSimulationRestarted) {
+            simulation.alphaTarget(0.01).restart();
+            dragSimulationRestarted = true;
+        }
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    } else {
+        d.x = d3.event.x;
+        d.y = d3.event.y;
+        d3.select(this)
+            .attr("transform", "translate(" + d.x + "," + d.y + ")");
+        tickHulls();
+        tickLinks();
     }
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
 }
 
 function dragended(d: Node) {
-    dragSimulationRestarted = false;
-    if (!d3.event.active) {
-        simulation.alphaTarget(0);
+    if (hasForceSimulation) {
+        if (!d3.event.active && dragSimulationRestarted) {
+            dragSimulationRestarted = false;
+            simulation.alphaTarget(0);
+        }
+        d.fx = null;
+        d.fy = null;
     }
-    d.fx = null;
-    d.fy = null;
 }
-
-let nodeClickTimeoutId: number = null;
 
 function onNodeClick(d: Node) {
     clearTimeout(nodeClickTimeoutId);
     nodeClickTimeoutId = null;
+    clearTimeout(nodeDragTimeoutId);
+    nodeDragTimeoutId = null;
 
     hasSearchedForNodes = false;
 
@@ -384,6 +416,9 @@ function onNodeClick(d: Node) {
 }
 
 function onNodeDblclick(d: Node) {
+    clearTimeout(nodeDragTimeoutId);
+    nodeDragTimeoutId = null;
+
     if (!d3.event.shiftKey) {
         // cancel single click timer
         if (nodeClickTimeoutId != null) {
@@ -405,10 +440,10 @@ function onNodeDblclick(d: Node) {
 }
 
 function ungroupNodes(d: Node) {
-    // Set nodes to the coords of the parent
+    // Set nodes to the coords of the parent (with random amount)
     for (let k1 = 0; k1 < d.nodes.length; k1++) {
-        d.nodes[k1].x = d.x;
-        d.nodes[k1].y = d.y;
+        d.nodes[k1].x = d.x + (((1 + Math.random()) * ((utils.getRadius(d) * 1.3) + utils.getRadius(d.nodes[k1]))) * (Math.random() < 0.5 ? -1 : 1));
+        d.nodes[k1].y = d.y + (((1 + Math.random()) * ((utils.getRadius(d) * 1.3) + utils.getRadius(d.nodes[k1]))) * (Math.random() < 0.5 ? -1 : 1));
     }
     // Remove grouped node and bring child nodes up to main array
     for (let k2 = 0; k2 < nodes.length; k2++) {
