@@ -592,7 +592,7 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
             .data((row, i) => d3.values(row))
             .enter()
             .append('td')
-            .text(d => d);
+            .text((d: string) => d);
     } else if (!utils.isLinkNotNode(nodeOrLink) && nodeOrLink.group && nodeOrLink.nodes) { // group
         tableElement
             .selectAll('tr')
@@ -603,6 +603,6 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
             .data((row, i) => [row.name])
             .enter()
             .append('td')
-            .text(function (d) { return d; });
+            .text((d: string) => d);
     }
 }

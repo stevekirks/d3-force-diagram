@@ -17,6 +17,10 @@ module.exports = (env) => {
         'process.env.NODE_ENV': JSON.stringify(isDevBuild ? 'development' : 'production')
     });
 
+    const uglifyPlugin = new webpack.optimize.UglifyJsPlugin({
+        sourceMap: true
+    });
+
     return {
         entry: "./src/index.tsx",
         output: {
@@ -52,9 +56,7 @@ module.exports = (env) => {
         ] : [
             extractSass,
             definePlugin,
-            new webpack.optimize.UglifyJsPlugin({
-                sourceMap: true
-            })
+            uglifyPlugin
         ]
     }
 };

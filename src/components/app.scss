@@ -99,6 +99,11 @@ path.hull {
   }
 }
 
+.loading-info, .debug-info {
+  position: absolute;
+  top: 0;
+}
+
 @media (max-width: 80em) {
   #diagram {
     -webkit-box-flex: 0;
