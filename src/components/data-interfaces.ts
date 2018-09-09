@@ -9,8 +9,8 @@ export interface Node {
     nodes?: Node[],
     x?: number,
     y?: number,
-    fx?: number,
-    fy?: number,
+    fx?: number | null,
+    fy?: number | null,
     internalLinks?: Link[],
     timestamp?: string
 }
@@ -26,7 +26,7 @@ export interface Link {
 
 export interface Hull {
     group: string,
-    path: [number, number][]
+    path: Array<[number, number]>
 }
 
 export interface NodeStateProperties {

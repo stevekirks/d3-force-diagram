@@ -1,8 +1,5 @@
 import * as d3 from 'd3';
-import * as utils from './utils/utils';
-import { schemePastel1, schemeDark2 } from 'd3-scale-chromatic';
-import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './utils/superformula';
-import { Link, Node, Hull } from './data-interfaces';
+import { schemeDark2 } from 'd3-scale-chromatic';
 
 export const colorScale = d3.scaleOrdinal(schemeDark2.slice());
 export const defaultNodeStrokeWidth = 1.5;

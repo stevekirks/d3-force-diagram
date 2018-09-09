@@ -1,0 +1,91 @@
+@import "variables.css";
+
+input {
+    border-style: none;
+    line-height: 22px;
+    margin-left: 5px;
+    padding-left: 5px;
+    border-radius: 1px;
+  }
+  input:focus {
+    outline-color: var(--backgroundColorHighlight);
+  }
+  
+  button {
+    border-style: none;
+    line-height: 22px;
+    margin: 5px;
+    border-radius: 1px;
+    background-color: var(--backgroundColorDefault);
+    color: var(--inputColorDefault);
+  }
+  button:focus {
+    outline-color: var(--backgroundColorHighlight);
+  }
+  button:hover {
+    background-color: var(--backgroundColorHighlight);
+    color: var(--inputColorHighlight);
+  }
+  button:active {
+    background-color: #ac2c0a;
+    color: var(--inputColorHighlight);
+  }
+  button:disabled {
+    background-color: #aaaaaa;
+    color: var(--inputColorDefault);
+  }
+  
+  input:disabled {
+    background-color: #aaaaaa;
+  }
+  
+  .disabled {
+    color: #aaaaaa;
+  }
+  
+  input[type=checkbox] {
+    position: absolute;
+    opacity: 0;
+  }
+  input[type=checkbox] + label {
+    position: relative;
+    cursor: pointer;
+    margin-left: 20px;
+  }
+  input[type=checkbox] + label:before {
+    content: "";
+    margin-right: 5px;
+    display: inline-block;
+    vertical-align: text-top;
+    width: 20px;
+    height: 20px;
+    background: var(--inputColorHighlight);
+  }
+  input[type=checkbox]:hover + label:before {
+    background: var(--backgroundColorHighlight);
+  }
+  input[type=checkbox]:focus + label:before {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.12);
+  }
+  input[type=checkbox]:checked + label:before {
+    background: var(--backgroundColorHighlight);
+  }
+  input[type=checkbox]:disabled + label {
+    color: #aaaaaa;
+    cursor: auto;
+  }
+  input[type=checkbox]:disabled + label:before {
+    box-shadow: none;
+    background: #aaaaaa;
+  }
+  input[type=checkbox]:checked + label:after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 9px;
+    background: var(--inputColorHighlight);
+    width: 2px;
+    height: 2px;
+    box-shadow: 2px 0 0 var(--inputColorHighlight), 4px 0 0 var(--inputColorHighlight), 4px -2px 0 var(--inputColorHighlight), 4px -4px 0 var(--inputColorHighlight), 4px -6px 0 var(--inputColorHighlight), 4px -8px 0 var(--inputColorHighlight);
+    transform: rotate(45deg);
+  }

@@ -1,6 +1,6 @@
 # D3 Force Diagram
 
-Built using Typescript, d3 (v4), React, Webpack
+Built using Create-React-App Typescript (https://github.com/wmonk/create-react-app-typescript) and d3 v5 (https://d3js.org/)
 
 ### Features
 -   nodes up to two levels in depth (double-click a node)
@@ -11,9 +11,9 @@ Built using Typescript, d3 (v4), React, Webpack
 ### Usage
 Clone this repository. Run
 ```
-yarn install
-yarn start
+npm install
+npm start
 ```
 
 ### Data format
-Sample data is stored in the `data` folder.
+Sample data is stored in the `public/data` folder.

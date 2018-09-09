@@ -46,16 +46,16 @@ const nodeStateUnhighlighted: NodeStateProperties = {
             
 export class DiagramStyles {
 
-    mouseOverLock: any = {};
-    mouseOutLock: any = {};
-    showOnlyHighlighted: boolean = false;
-    invertedBackground: boolean = false;
+    public showOnlyHighlighted: boolean = false;
+    public invertedBackground: boolean = false;
+    private mouseOverLock: any = {};
+    private mouseOutLock: any = {};
 
-    applyNodeDefault(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeDefault(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateDefault.className, true);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
         nodeShape
             .transition(utils.transitionLinearSecond)
             .attr("d", (d: Node) => nodeStateDefault.shapeSuperformula.getPath(d))
@@ -71,20 +71,20 @@ export class DiagramStyles {
             .attr("transform", (d: Node) => {
                 return utils.nodeTextShiftRight(d);
             })
-            .text((d: Node) => { return d.name || d.group });
+            .text((d: Node) => d.name || d.group);
     }
 
-    applyNodeSearch(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeSearch(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateSearch.className, true);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
-        let bigSuperdupaPath = new Superformula().type(() => "gear");
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
+        const bigSuperdupaPath = new Superformula().type(() => "gear");
         nodeShape
             .transition()
             .duration(550)
-            .attr("d", (d: Node) => bigSuperdupaPath.size((d) => { 
-                return 5 * utils.getHighlightedRadius(d); 
+            .attr("d", (d: Node) => bigSuperdupaPath.size((bd) => { 
+                return 5 * utils.getHighlightedRadius(bd); 
             }).getPath(d))
             .attr("stroke", (d: Node) => constants.highlightColor)
             .attr("fill", (d: Node) => constants.highlightColor)
@@ -102,11 +102,11 @@ export class DiagramStyles {
             });
     }
 
-    applyNodeHighlight(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeHighlight(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateHighlight.className, true);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
         nodeShape.transition()
             .duration(450)
             .attr("d", (d: Node) => nodeStateHighlight.shapeSuperformula.getPath(d))
@@ -123,11 +123,11 @@ export class DiagramStyles {
             });
     }
 
-    applyNodeHighlightedNeighbour(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeHighlightedNeighbour(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateHighlightNeighbour.className, true);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
         nodeShape.transition()
             .duration(750)
             .attr("d", (d: Node) => nodeStateHighlightNeighbour.shapeSuperformula.getPath(d))
@@ -140,11 +140,11 @@ export class DiagramStyles {
             .style("opacity", 1);
     }
 
-    applyNodeUnhighlighted(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeUnhighlighted(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateUnhighlighted.className, true);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
         nodeShape.transition()
                 .duration(750)
                 .attr("d", (d: Node) => nodeStateUnhighlighted.shapeSuperformula.getPath(d))
@@ -160,107 +160,107 @@ export class DiagramStyles {
                 });
     }
 
-    applyNodeMouseOver(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
-        let nodeState = getNodeStateProperties(nodeEles);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
+    public applyNodeMouseOver(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+        const nodeState = getNodeStateProperties(nodeEles);
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
         // A transition can already occur on a node, therefore using a custom tween
-        let mouseOverTransition = d3.select(this.mouseOverLock)
+        const mouseOverTransition = d3.select(this.mouseOverLock)
             .transition()
             .duration(200);
         mouseOverTransition
-            .tween("style:stroke-width", function() {
-                var i = d3.interpolateNumber(1, 10);
-                return function(t) { nodeShape.style("stroke-width", i(t)); };
+            .tween("style:stroke-width", () => {
+                const i = d3.interpolateNumber(1, 10);
+                return (t: any) => { nodeShape.style("stroke-width", i(t)); };
             });
         mouseOverTransition
-            .tween("attr:transform", function() {
-                let nodeData = nodeEles.data()[0];
-                let shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier);
-                let shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.1);
-                var i = d3.interpolateString(shiftFrom, shiftTo);
-                return function(t) { 
+            .tween("attr:transform", () => {
+                const nodeData = nodeEles.data()[0];
+                const shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier);
+                const shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.1);
+                const i = d3.interpolateString(shiftFrom, shiftTo);
+                return (t: any) => { 
                     nodeText.attr("transform", i(t)); 
                 };
             });
-        if (this.showOnlyHighlighted == false && Number(nodeText.style("opacity")) < 1) {
+        if (this.showOnlyHighlighted === false && Number(nodeText.style("opacity")) < 1) {
             nodeText.classed("temp-show", true);
             mouseOverTransition
-                .tween("style:opacity", function() {
-                    var i = d3.interpolateNumber(Number(nodeText.style("opacity")), 1);
-                    return function(t) { nodeText.style("opacity", i(t)); };
+                .tween("style:opacity", () => {
+                    const i = d3.interpolateNumber(Number(nodeText.style("opacity")), 1);
+                    return (t: any) => { nodeText.style("opacity", i(t)); };
                 });
         }
     }
 
-    applyNodeMouseOut(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
-        let nodeState = getNodeStateProperties(nodeEles);
-        let nodeShape = nodeEles.selectAll(".node-shape");
-        let nodeText = nodeEles.selectAll(".node-text");
+    public applyNodeMouseOut(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+        const nodeState = getNodeStateProperties(nodeEles);
+        const nodeShape = nodeEles.selectAll(".node-shape");
+        const nodeText = nodeEles.selectAll(".node-text");
         // A transition can already occur on a node, therefore using a custom tween
-        let mouseOutTransition = d3.select(this.mouseOutLock)
+        const mouseOutTransition = d3.select(this.mouseOutLock)
             .transition()
             .duration(200);
         mouseOutTransition
-            .tween("style:stroke-width", function() {
-                var i = d3.interpolateNumber(10, 1);
-                return function(t) { nodeShape.style("stroke-width", i(t)); };
+            .tween("style:stroke-width", () => {
+                const i = d3.interpolateNumber(10, 1);
+                return (t: any) => { nodeShape.style("stroke-width", i(t)); };
             });
         mouseOutTransition
-            .tween("attr:transform", function() {
-                let nodeData = nodeEles.data()[0];
-                let shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier);
-                let shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.1);
-                var i = d3.interpolateString(shiftFrom, shiftTo);
-                return function(t) { nodeText.attr("transform", i(t)); };
+            .tween("attr:transform", () => {
+                const nodeData = nodeEles.data()[0];
+                const shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier);
+                const shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.1);
+                const i = d3.interpolateString(shiftFrom, shiftTo);
+                return (t: any) => { nodeText.attr("transform", i(t)); };
             });
         if (nodeText.classed("temp-show")) {
             nodeText.classed("temp-show", false);
             mouseOutTransition
-                .tween("style:opacity", function() {
-                    var i = d3.interpolateNumber(1, 0);
-                    return function(t) { nodeText.style("opacity", i(t)); };
+                .tween("style:opacity", () => {
+                    const i = d3.interpolateNumber(1, 0);
+                    return (t: any) => { nodeText.style("opacity", i(t)); };
                 });
         }
     }
 
-    applyLinkDefault(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkDefault(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .attr("stroke-width", constants.defaultLinkStrokeWidth)
-            .attr("stroke", function (d) {
+            .attr("stroke", (d) => {
                 return "url(#" + utils.getLinkGradientId(d) + ")";
             })
             .transition(utils.transitionLinearSecond)
             .style("stroke-opacity", 1);
     }
 
-    applyLinkHighlight(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkHighlight(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .transition()
                 .duration(750)
                 .style("stroke-opacity", 1);
     }
 
-    applyLinkMouseOver(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkMouseOver(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .attr("stroke-width", constants.defaultLinkStrokeWidth * 3);
     }
 
-    applyLinkMouseOut(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkMouseOut(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .attr("stroke-width", constants.defaultLinkStrokeWidth);
     }
 
-    applyLinkUnhighlighted(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkUnhighlighted(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .transition()
                 .duration(750)
                 .style("stroke-opacity", this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
     }
 
-    applyLinkGradientDefault(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
-        let stopOne = linkGradientEles.selectAll("stop:nth-child(1)");
-        let stopTwo = linkGradientEles.selectAll("stop:nth-child(2)");
+    public applyLinkGradientDefault(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
+        const stopOne = linkGradientEles.selectAll("stop:nth-child(1)");
+        const stopTwo = linkGradientEles.selectAll("stop:nth-child(2)");
         linkGradientEles
             .attr("id", utils.getLinkGradientId)
             .attr("gradientUnits", "userSpaceOnUse");
@@ -272,21 +272,21 @@ export class DiagramStyles {
             .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
-    applyLinkGradientHighlight(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkGradientHighlight(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkGradientEles.selectAll("stop:nth-child(2)")
             .transition()
                 .duration(750)
                 .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
-    applyLinkGradientUnhighlighted(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkGradientUnhighlighted(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkGradientEles.selectAll("stop:nth-child(2)")
             .transition()
                 .duration(750)
                 .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
-    applyHullDefault(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
+    public applyHullDefault(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
         hullEles
             .attr("d", utils.drawCluster)
             .transition()
@@ -295,7 +295,7 @@ export class DiagramStyles {
                 .style("fill-opacity", 0.3);
     }
 
-    applyHullHighlight(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
+    public applyHullHighlight(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
         hullEles
             .transition()
                 .duration(750)
@@ -303,7 +303,7 @@ export class DiagramStyles {
                 .style("fill-opacity", this.showOnlyHighlighted ? 0 : 0.2);
     }
 
-    applyHullUnhighlighted(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
+    public applyHullUnhighlighted(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
         hullEles
             .transition()
                 .duration(750)
@@ -333,4 +333,5 @@ function getNodeStateProperties(nodeEles: d3.Selection<BaseType, Node, BaseType,
     } else if (nodeEles.classed(nodeStateUnhighlighted.className)) {
         return nodeStateUnhighlighted;
     }
+    return nodeStateDefault;
 }

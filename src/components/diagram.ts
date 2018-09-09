@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-import { schemePastel1, schemeDark2 } from 'd3-scale-chromatic';
 import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './utils/superformula';
 import * as utils from './utils/utils';
 import * as searchUtils from './utils/search-matching';
@@ -8,13 +7,13 @@ import * as constants from './constants';
 import Tooltip from './utils/tooltip';
 import { DiagramStyles } from './diagram-styles';
 import { linkGradientColorEnd } from './constants';
-declare var __DATA_SERVICES_URL__: string;
 
 export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: boolean) => void) {
     highlightedNodesChangedCallback = highlightedNodesChangedCallbackArg;
 
     prepare();
 
+    
     // Show a loading message
     d3.select('#diagram')
         .append("h3")
@@ -22,18 +21,17 @@ export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: b
         .html("Loading. This shouldn't take more than a few seconds...");
 
     // Load the data
-    d3.json(__DATA_SERVICES_URL__, (error, response: {nodes: Node[], links: Link[]}) => {
-        if (!error) {
-            nodes = response.nodes;
-            links = response.links;
+    const dataUrl: string = process.env.REACT_APP_DATA_SERVICES_URL!;
+    d3.json(dataUrl).then(((response: {nodes: Node[], links: Link[]}) => {
+        nodes = response.nodes;
+        links = response.links;
 
-            // Remove the loading message
-            d3.select('#diagram').select(".loading-info").remove();
+        // Remove the loading message
+        d3.select('#diagram').select(".loading-info").remove();
 
-            // Show the data
-            updateSimulation();
-        }
-    });
+        // Show the data
+        updateSimulation();
+    }));
 }
 
 export function searchForNodes(searchText: string) {
@@ -41,7 +39,7 @@ export function searchForNodes(searchText: string) {
         highlightedNodes = [];
         hasSearchedForNodes = false;
     } else {
-        let matchedNodes = searchUtils.SearchNodes(searchText, nodeElements);
+        const matchedNodes = searchUtils.SearchNodes(searchText, nodeElements);
         highlightedNodes = matchedNodes.data();
         hasSearchedForNodes = true;
     }
@@ -49,7 +47,7 @@ export function searchForNodes(searchText: string) {
 }
 
 export function showAllLabels(show: boolean) {
-    if (show == true) {
+    if (show === true) {
         d3.selectAll('.node-text').style('opacity', 1);
     } else {
         highlightNodes();
@@ -95,7 +93,7 @@ let svgDefs: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 let hasSearchedForNodes: boolean = false;
 let hasForceSimulation: boolean = true;
 
-//let tooltip: Tooltip; // Not currently used, but it works if needed
+// let tooltip: Tooltip; // Not currently used, but it works if needed
 
 const defaultSuperdupaPath = new Superformula()
             .type(utils.defaultNodeSuperformulaType)
@@ -112,11 +110,11 @@ function zoomed() {
     svg.select(".hulls").attr("transform", d3.event.transform);
 }
 // Force Simulation
-let simulation: d3.Simulation<Node, Link>;
+let simulation: d3.Simulation<Node, Link> = d3.forceSimulation<Node,Link>();
 
 function prepare() {
-    diagramWidth = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")).width.replace('px', ''))) - 10;
-    diagramHeight = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")).height.replace('px', ''))) - 10;
+    diagramWidth = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")!).width!.replace('px', ''))) - 10;
+    diagramHeight = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")!).height!.replace('px', ''))) - 10;
 
     svg = d3.select('#diagram')
                 .append("svg")
@@ -135,7 +133,7 @@ function prepare() {
     svg.append("g") // last so it's on top
             .classed("nodes", true);
 
-    //tooltip = new Tooltip(d3.select('#diagram'));
+    // tooltip = new Tooltip(d3.select('#diagram'));
 
     // zooming
     zoom = d3.zoom()
@@ -151,10 +149,11 @@ function prepare() {
         .force("link", d3.forceLink()
             .id((d: Node) => utils.GetNodeNameOrGroup(d))
             .distance((l: Link, i: number) => {
-                let n1 = l.source, n2 = l.target;
+                const n1 = l.source;
+                const n2 = l.target;
                 let d: number = utils.nodeRadiusSizes.default;
                 if (utils.isNodeNotString(n1) && utils.isNodeNotString(n2)) {
-                    let combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
+                    const combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
                     d = (n1.group === n2.group
                         ? combinedRadiuses
                         : combinedRadiuses * 5);
@@ -183,28 +182,28 @@ function tickHulls() {
 function tickLinks() {
     linkElements
         .attr("x1", (d: Link) => { 
-            return utils.isNodeNotString(d.source) ? d.source.x : 0; 
+            return utils.isNodeNotString(d.source) && d.source.x ? d.source.x : 0; 
         })
         .attr("y1", (d: Link) => { 
-            return utils.isNodeNotString(d.source) ? d.source.y : 0;
+            return utils.isNodeNotString(d.source) && d.source.y ? d.source.y : 0;
         })
         .attr("x2", (d: Link) => { 
-            return utils.isNodeNotString(d.target) ? d.target.x : 0; 
+            return utils.isNodeNotString(d.target) && d.target.x ? d.target.x : 0; 
         })
         .attr("y2", (d: Link) => { 
-            return utils.isNodeNotString(d.target) ? d.target.y : 0; 
+            return utils.isNodeNotString(d.target) && d.target.y ? d.target.y : 0; 
         });
     linkGradients
         .attr("x1", (d: Link) => { 
-            return utils.isNodeNotString(d.source) ? d.source.x : 0; 
+            return utils.isNodeNotString(d.source) && d.source.x ? d.source.x : 0; 
         })
         .attr("y1", (d: Link) => { 
-            return utils.isNodeNotString(d.source) ? d.source.y : 0; })
+            return utils.isNodeNotString(d.source) && d.source.y ? d.source.y : 0; })
         .attr("x2", (d: Link) => { 
-            return utils.isNodeNotString(d.target) ? d.target.x : 0; 
+            return utils.isNodeNotString(d.target) && d.target.x ? d.target.x : 0; 
         })
         .attr("y2", (d: Link) => { 
-            return utils.isNodeNotString(d.target) ? d.target.y : 0; 
+            return utils.isNodeNotString(d.target) && d.target.y ? d.target.y : 0; 
         });
 }
 
@@ -218,7 +217,7 @@ function updateSimulation() {
     hullElements = svg.select(".hulls").selectAll("path.hull").data(utils.convexHulls(nodes, utils.getGroup, utils.hullOffset));
 
     linkGradients.exit().remove();
-    let linkGradientsEnter = linkGradients.enter()
+    const linkGradientsEnter = linkGradients.enter()
         .append("linearGradient");
     linkGradientsEnter.append("stop");
     linkGradientsEnter.append("stop");
@@ -229,15 +228,15 @@ function updateSimulation() {
         .transition(utils.transitionLinearSecond)
         .style("stroke-opacity", 1e-6)
         .remove();
-    let linkEnterElements = linkElements.enter().append("line");
+    const linkEnterElements = linkElements.enter().append("line");
     linkEnterElements
         .on("mouseover", function (d, i) { // note function (not lambda) is reqd for 'this'
             diagramStyles.applyLinkMouseOver(d3.select(this));
-            //tooltip.Show(d3.select(this), 'a message');
+            // tooltip.Show(d3.select(this), 'a message');
         })
         .on("mouseout", function (d, i) {
             diagramStyles.applyLinkMouseOut(d3.select(this));
-            //tooltip.Hide();
+            // tooltip.Hide();
         })
         .on('click', PopulateInfoBox)
         .style("stroke-opacity", 1e-6);
@@ -249,11 +248,11 @@ function updateSimulation() {
         .style("stroke-opacity", 1e-6)
         .style("fill-opacity", 1e-6)
         .remove();
-    let drager: d3.DragBehavior<any, any, any> = d3.drag();
+    const drager: d3.DragBehavior<any, any, any> = d3.drag();
     drager
         .on("drag", dragged)
         .on("end", dragended);
-    let nodeEnterElements = nodeElements.enter()
+    const nodeEnterElements = nodeElements.enter()
         .append("g")
         .classed("node", true);
     nodeEnterElements
@@ -277,7 +276,7 @@ function updateSimulation() {
         .transition(utils.transitionLinearSecond)
         .style("fill-opacity", 1e-6)
         .remove();
-    let hullEnterElements = hullElements.enter().append("path")
+    const hullEnterElements = hullElements.enter().append("path")
         .classed("hull", true)
         .style("fill-opacity", 1e-6);
     diagramStyles.applyHullDefault(hullEnterElements);
@@ -287,32 +286,35 @@ function updateSimulation() {
 
     simulation.nodes(nodes)
         .on("tick", () => {
-            let alpha = simulation.alpha();
+            const alpha = simulation.alpha();
 
             // Force the node groups to cluster
-            for (let n1 = 0; n1 < nodes.length; n1++) {
-                let d = nodes[n1];
+            for (const d of nodes) {
                 if (d.group) {
-                    let biggestNode = biggestNodePerGroup[d.group];
+                    const biggestNode = biggestNodePerGroup[d.group];
                     if (biggestNode !== d) {
-                        let x1 = d.x - biggestNode.x;
-                        let y1 = d.y - biggestNode.y;
-                        let l = Math.sqrt(x1 * x1 + y1 * y1); // dist between node and biggest node
-                        let r = (utils.getRadius(d) * 1.6) + utils.getRadius(biggestNode); // ideal dist between node and biggest node
-                        if (l != r) {
-                            let alphaMultiplier = (alpha / 2) + 0.5; // want decay, but not much
-                            let l1 = l - r;
-                            let t = (l1 / l);
-                            let xr = ((1-t) * biggestNode.x) + (t * d.x);
-                            let yr = ((1-t) * biggestNode.y) + (t * d.y);
-                            let xd = d.x - xr;
-                            let yd = d.y - yr;
-                            nodes[n1].x -= (xd * 0.49 * alphaMultiplier);
-                            nodes[n1].y -= (yd * 0.49 * alphaMultiplier);
-                            let bxr = ((1-t) * d.x) + (t * biggestNode.x);
-                            let byr = ((1-t) * d.y) + (t * biggestNode.y);
-                            let bxd = biggestNode.x - bxr;
-                            let byd = biggestNode.y - byr;
+                        biggestNode.x = biggestNode.x || 0;
+                        biggestNode.y = biggestNode.y || 0;
+                        d.x = d.x || 0;
+                        d.y = d.y || 0;
+                        const x1 = d.x - biggestNode.x;
+                        const y1 = d.y - biggestNode.y;
+                        const l = Math.sqrt(x1 * x1 + y1 * y1); // dist between node and biggest node
+                        const r = (utils.getRadius(d) * 1.6) + utils.getRadius(biggestNode); // ideal dist between node and biggest node
+                        if (l !== r) {
+                            const alphaMultiplier = (alpha / 2) + 0.5; // want decay, but not much
+                            const l1 = l - r;
+                            const t = (l1 / l);
+                            const xr = ((1-t) * biggestNode.x) + (t * d.x);
+                            const yr = ((1-t) * biggestNode.y) + (t * d.y);
+                            const xd = d.x - xr;
+                            const yd = d.y - yr;
+                            d.x = (d.x || 0) - (xd * 0.49 * alphaMultiplier);
+                            d.y = (d.y || 0) - (yd * 0.49 * alphaMultiplier);
+                            const bxr = ((1-t) * d.x) + (t * biggestNode.x);
+                            const byr = ((1-t) * d.y) + (t * biggestNode.y);
+                            const bxd = biggestNode.x - bxr;
+                            const byd = biggestNode.y - byr;
                             biggestNode.x -= (bxd * 0.49 * alphaMultiplier);
                             biggestNode.y -= (byd * 0.49 * alphaMultiplier);
                         }
@@ -327,12 +329,12 @@ function updateSimulation() {
             nodeElements
                 .attr("transform", (d: Node) => {
                     // Keep nodes within boundary
-                    d.x = Math.max((utils.getHighlightedRadius(d) + 10), Math.min(diagramWidth - (utils.getHighlightedRadius(d) + 10), (isNaN(d.x) || d.x === 0 ? diagramWidth / 2 : d.x)));
-                    d.y = Math.max((utils.getHighlightedRadius(d) + 10), Math.min(diagramHeight - (utils.getHighlightedRadius(d) + 10), (isNaN(d.y) || d.y === 0 ? diagramHeight / 2 : d.y)));
+                    d.x = Math.max((utils.getHighlightedRadius(d) + 10), Math.min(diagramWidth - (utils.getHighlightedRadius(d) + 10), (isNaN(d.x!) || d.x === 0 ? diagramWidth / 2 : d.x!)));
+                    d.y = Math.max((utils.getHighlightedRadius(d) + 10), Math.min(diagramHeight - (utils.getHighlightedRadius(d) + 10), (isNaN(d.y!) || d.y === 0 ? diagramHeight / 2 : d.y!)));
                     return "translate(" + d.x + "," + d.y + ")"
                 });
         });
-    simulation.force<d3.ForceLink<Node, Link>>('link').links(links);
+    simulation.force<d3.ForceLink<Node, Link>>('link')!.links(links);
     utils.simulationAlpha(simulation);
     if (hasForceSimulation) {
         simulation.restart();
@@ -347,10 +349,10 @@ function updateSimulation() {
 }
 
 let dragSimulationRestarted = false;
-let nodeClickTimeoutId: number = null;
-let nodeDragTimeoutId: number = null;
+let nodeClickTimeoutId: number | null = null;
+let nodeDragTimeoutId: number | null = null;
 
-function dragged(d: Node) {
+function dragged(d: Node, idx: any, n: any) {
     if (hasForceSimulation) {
         if (!dragSimulationRestarted) {
             simulation.alphaTarget(0.01).restart();
@@ -361,7 +363,7 @@ function dragged(d: Node) {
     } else {
         d.x = d3.event.x;
         d.y = d3.event.y;
-        d3.select(this)
+        d3.select(n[idx])
             .attr("transform", "translate(" + d.x + "," + d.y + ")");
         tickHulls();
         tickLinks();
@@ -380,9 +382,9 @@ function dragended(d: Node) {
 }
 
 function onNodeClick(d: Node) {
-    clearTimeout(nodeClickTimeoutId);
+    clearTimeout(nodeClickTimeoutId!);
     nodeClickTimeoutId = null;
-    clearTimeout(nodeDragTimeoutId);
+    clearTimeout(nodeDragTimeoutId!);
     nodeDragTimeoutId = null;
 
     hasSearchedForNodes = false;
@@ -392,7 +394,7 @@ function onNodeClick(d: Node) {
         // with shift key pressed, select multiple, or deselect an already selected node
         
         // check if node is already selected
-        let highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.GetNodeNameOrGroup(hn) == utils.GetNodeNameOrGroup(d));
+        const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.GetNodeNameOrGroup(hn) === utils.GetNodeNameOrGroup(d));
         if (highlightedNodeIdx > -1) { // then remove node
             highlightedNodes.splice(highlightedNodeIdx, 1);
         } else { // highlight it
@@ -416,7 +418,7 @@ function onNodeClick(d: Node) {
 }
 
 function onNodeDblclick(d: Node) {
-    clearTimeout(nodeDragTimeoutId);
+    clearTimeout(nodeDragTimeoutId!);
     nodeDragTimeoutId = null;
 
     if (!d3.event.shiftKey) {
@@ -441,44 +443,41 @@ function onNodeDblclick(d: Node) {
 
 function ungroupNodes(d: Node) {
     // Set nodes to the coords of the parent (with random amount)
-    for (let k1 = 0; k1 < d.nodes.length; k1++) {
-        d.nodes[k1].x = d.x + (((1 + Math.random()) * ((utils.getRadius(d) * 1.3) + utils.getRadius(d.nodes[k1]))) * (Math.random() < 0.5 ? -1 : 1));
-        d.nodes[k1].y = d.y + (((1 + Math.random()) * ((utils.getRadius(d) * 1.3) + utils.getRadius(d.nodes[k1]))) * (Math.random() < 0.5 ? -1 : 1));
+    for (const k1 of d.nodes!) {
+        k1.x = d.x! + (((1 + Math.random()) * ((utils.getRadius(d) * 1.3) + utils.getRadius(k1))) * (Math.random() < 0.5 ? -1 : 1));
+        k1.y = d.y! + (((1 + Math.random()) * ((utils.getRadius(d) * 1.3) + utils.getRadius(k1))) * (Math.random() < 0.5 ? -1 : 1));
     }
     // Remove grouped node and bring child nodes up to main array
-    for (let k2 = 0; k2 < nodes.length; k2++) {
-        if (nodes[k2].group && nodes[k2].nodes && nodes[k2].group === d.group) {
-            nodes.splice(k2, 1);
+    for (const k2 of nodes) {
+        if (k2.group && k2.nodes && k2.group === d.group) {
+            nodes.splice(nodes.indexOf(k2), 1);
             break;
         }
     }
     Array.prototype.push.apply(nodes, d.nodes);
     // Add internal links
     if (d.internalLinks) {
-        for (let k3 = 0; k3 < d.internalLinks.length; k3++) {
-            let k3Link = d.internalLinks[k3];
-            d.internalLinks[k3].target = k3Link.targetChild;
-            d.internalLinks[k3].source = k3Link.sourceChild;
+        for (const k3Link of d.internalLinks) {
+            k3Link.target = k3Link.targetChild!;
+            k3Link.source = k3Link.sourceChild!;
         }
         Array.prototype.push.apply(links, d.internalLinks);
         delete d.internalLinks;
     }
     // Update links
-    for (let m = 0; m < d.nodes.length; m++) {
-        let childMNode = d.nodes[m];
-        for (let l = 0; l < links.length; l++) {
-            let lLink = links[l];
+    for (const childMNode of d.nodes!) {
+        for (const lLink of links) {
             if (lLink.targetChild
 					&& ((typeof lLink.targetChild === 'string' && lLink.targetChild === childMNode.name)
 					|| (utils.isNodeNotString(lLink.targetChild) && lLink.targetChild.name === childMNode.name))) {
-                links[l].target = lLink.targetChild;
-                delete links[l].targetChild;
+                lLink.target = lLink.targetChild;
+                delete lLink.targetChild;
             }
             if (lLink.sourceChild
 					&& ((typeof lLink.sourceChild === 'string' && lLink.sourceChild === childMNode.name)
 					|| (utils.isNodeNotString(lLink.sourceChild) && lLink.sourceChild.name === childMNode.name))) {
-                links[l].source = lLink.sourceChild;
-                delete links[l].sourceChild;
+                lLink.source = lLink.sourceChild;
+                delete lLink.sourceChild;
             }
         }
     }
@@ -487,27 +486,26 @@ function ungroupNodes(d: Node) {
 }
 
 function regroupNodes(d: Node) {
-    let newNodeGroup: Node = { 'group': d.group, 'nodes': [], x: d.x, y: d.y, 'internalLinks': [] };
+    const newNodeGroup: Node = { 'group': d.group, 'nodes': [], x: d.x, y: d.y, 'internalLinks': [] };
     for (let k = 0; k < nodes.length; ++k) {
-        let kNode = nodes[k];
+        const kNode = nodes[k];
         if (kNode.group === d.group) {
             // Group child nodes and remove from main array
             nodes.splice(k, 1);
-            newNodeGroup.nodes.push(kNode);
+            newNodeGroup.nodes!.push(kNode);
             // Update links
-            for (let m = 0; m < links.length; m++) {
-                let mLink = links[m];
+            for (const mLink of links) {
                 if (((typeof mLink.target === 'string' && mLink.target === kNode.name)
                     || (utils.isNodeNotString(mLink.target) && mLink.target.name === kNode.name))
                     && (!mLink.targetChild || (utils.isNodeNotString(mLink.targetChild) ? mLink.targetChild.group !== kNode.name : true))) {
-                    links[m].targetChild = mLink.target;
-                    links[m].target = d.group;
+                    mLink.targetChild = mLink.target;
+                    mLink.target = d.group;
                 }
                 if (((typeof mLink.source === 'string' && mLink.source === kNode.name)
                     || (utils.isNodeNotString(mLink.source) && mLink.source.name === kNode.name))
                     && (!mLink.sourceChild || (utils.isNodeNotString(mLink.sourceChild) ? mLink.sourceChild.group !== kNode.name : true))) {
-                    links[m].sourceChild = mLink.source;
-                    links[m].source = d.group;
+                    mLink.sourceChild = mLink.source;
+                    mLink.source = d.group;
                 }
             }
             k--;
@@ -515,9 +513,9 @@ function regroupNodes(d: Node) {
     }
     // Pass through links again and get rid of internal links
     for (let m1 = 0; m1 < links.length; m1++) {
-        let m1Link = links[m1];
+        const m1Link = links[m1];
         if (m1Link.target === d.group && m1Link.target === m1Link.source) {
-            newNodeGroup.internalLinks.push(m1Link);
+            newNodeGroup.internalLinks!.push(m1Link);
             links.splice(m1, 1);
             m1--;
         }
@@ -529,28 +527,25 @@ function regroupNodes(d: Node) {
 
 function highlightNodes() {
     highlightedNodesChangedCallback(highlightedNodes.length > 0);
-    if (highlightedNodes.length == 0) {
+    if (highlightedNodes.length === 0) {
         diagramStyles.applyNodeDefault(nodeElements);
         diagramStyles.applyLinkDefault(linkElements);
         diagramStyles.applyLinkGradientDefault(linkGradients);
         diagramStyles.applyHullDefault(hullElements);
     } else {
-        let matchedNodesData = highlightedNodes;
-        let matchedNodes = searchUtils.GetMatchedNodes(matchedNodesData, nodeElements);
-        let matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
-        let matchedLinkGradients = searchUtils.GetMatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
-        let unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
-        let unmatchedLinkGradients = searchUtils.GetUnmatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
-        let neighbourNodes = searchUtils.GetNeighbourNodes(matchedNodesData, matchedLinks.data(), nodeElements);
-        let highlightedAndNeighbourNodesData = matchedNodesData.concat(neighbourNodes.data());
-        let unmatchedNodes = searchUtils.GetUnmatchedNodes(highlightedAndNeighbourNodesData, nodeElements);
-        let matchedHulls = searchUtils.GetMatchedHulls(matchedNodesData, hullElements);
-        let unmatchedHulls = searchUtils.GetUnmatchedHulls(matchedHulls.data(), hullElements);
+        const matchedNodesData = highlightedNodes;
+        const matchedNodes = searchUtils.GetMatchedNodes(matchedNodesData, nodeElements);
+        const matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
+        const matchedLinkGradients = searchUtils.GetMatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
+        const unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
+        const unmatchedLinkGradients = searchUtils.GetUnmatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
+        const neighbourNodes = searchUtils.GetNeighbourNodes(matchedNodesData, matchedLinks.data(), nodeElements);
+        const highlightedAndNeighbourNodesData = matchedNodesData.concat(neighbourNodes.data());
+        const unmatchedNodes = searchUtils.GetUnmatchedNodes(highlightedAndNeighbourNodesData, nodeElements);
+        const matchedHulls = searchUtils.GetMatchedHulls(matchedNodesData, hullElements);
+        const unmatchedHulls = searchUtils.GetUnmatchedHulls(matchedHulls.data(), hullElements);
 
-        // while originally I used easing, because we want to highlight already highlighted nodes I chose to use two transitions instead
-        let eB = d3.easeBackOut.overshoot(10);
-
-        if (hasSearchedForNodes == true) {
+        if (hasSearchedForNodes === true) {
             diagramStyles.applyNodeSearch(matchedNodes);
         } else {
             diagramStyles.applyNodeHighlight(matchedNodes);
@@ -569,27 +564,27 @@ function highlightNodes() {
 
 // Info Box
 function PopulateInfoBox(nodeOrLink: Node | Link) {
-    let divServiceDetails = d3.select("#info-box");
-    let title = utils.GetNodeOrLinkTitle(nodeOrLink);
-    let notes = !utils.isLinkNotNode(nodeOrLink) ? (nodeOrLink.notes || '') : '';
+    const divServiceDetails = d3.select("#info-box");
+    const title = utils.GetNodeOrLinkTitle(nodeOrLink);
+    const notes = !utils.isLinkNotNode(nodeOrLink) ? (nodeOrLink.notes || '') : '';
     divServiceDetails.select(".title").text(title);
     divServiceDetails.select(".notes").text(notes);
 
-    let tableElement = divServiceDetails.select(".table");
+    const tableElement = divServiceDetails.select(".table");
     divServiceDetails.select(".table")
         .selectAll('tr')
         .remove();
 
-    let timestamp = nodeOrLink.timestamp || '';
+    const timestamp = nodeOrLink.timestamp || '';
     divServiceDetails.select(".timestamp").text(timestamp);
 
     if (nodeOrLink.details) { // node or link
-        let tableData = d3.entries(nodeOrLink.details);
+        const tableData = d3.entries(nodeOrLink.details);
         tableElement
             .data(tableData)
             .enter()
             .append('tr')
-            .data((row, i) => d3.values(row))
+            .data((row) => d3.values(row))
             .enter()
             .append('td')
             .text((d: string) => d);
@@ -600,7 +595,7 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
             .enter()
             .append('tr')
             .selectAll('td')
-            .data((row, i) => [row.name])
+            .data((row) => [row.name])
             .enter()
             .append('td')
             .text((d: string) => d);

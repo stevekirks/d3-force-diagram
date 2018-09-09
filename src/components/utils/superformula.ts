@@ -2,65 +2,64 @@
 import * as d3 from 'd3';
 import { Node } from '../data-interfaces';
 
-let _symbol = d3.symbol(),
-    _line = d3.line();
+const sLine = d3.line();
 
 class Superformula {
-    _type: (d: Node) => string;
-    _size: (d: Node) => number;
-    _segments: number;
+    private sType: (d: Node) => string;
+    private sSize: (d: Node) => number;
+    private sSegments: number;
 
     constructor() {
 
         // defaults
-        this._type = (d) => "circle";
-        this._size = (d) => 1;
-        this._segments = 360;
+        this.sType = (d) => "circle";
+        this.sSize = (d) => 1;
+        this.sSegments = 360;
 
         this.getPath = this.getPath.bind(this);
     }
     
-    type(f: (d: Node) => string){
-        this._type = f;
+    public type(f: (d: Node) => string){
+        this.sType = f;
         return this;
     }
-    size(f: (d: Node) => number){
-        this._size = f;
+    public size(f: (d: Node) => number){
+        this.sSize = f;
         return this;
     }
-    segments(d: number){
-        this._segments = d;
+    public segments(d: number){
+        this.sSegments = d;
         return this;
     }
 
-    getPath(d: Node, sizeMultiplier?: number): string {
+    public getPath(d: Node, sizeMultiplier?: number): string {
         let sType: SuperformulaTypeObject;
-        let typeKey = this._type(d);
-        if (_superformulaTypes.hasOwnProperty(typeKey)) {
-            sType = _superformulaTypes[typeKey];
-        }
-        return this._superformulaPath(sType, this._segments, this._size(d) * (sizeMultiplier || 1));
+        const typeKey = this.sType(d);
+        sType = SuperformulaTypes[typeKey];
+        return this._superformulaPath(sType, this.sSegments, this.sSize(d) * (sizeMultiplier || 1));
     }
 
-    allTypes(): string[] {
-        return d3.keys(_superformulaTypes);
+    public allTypes(): string[] {
+        return d3.keys(SuperformulaTypes);
     }
 
-    _superformulaPath(params: SuperformulaTypeObject, n: number, diameter: number): string {
-        let i: number = -1,
-            dt: number = 2 * Math.PI / n,
-            t: number,
-            r: number = 0,
-            x: number,
-            y: number;
-        let ts: number[] = [];
-        let points: [number, number][] = [];
+    private _superformulaPath(params: SuperformulaTypeObject, n: number, diameter: number): string {
+        let i: number = -1;
+        const dt: number = 2 * Math.PI / n;
+        let t: number;
+        let r: number = 0;
+        let x: number;
+        let y: number;
+        const ts: number[] = [];
+        const points: Array<[number, number]> = [];
 
         while (++i < n) {
             t = params.m * (i * dt - Math.PI) / 4;
             t = Math.pow(Math.abs(Math.pow(Math.abs(Math.cos(t) / params.a), params.n2)
             + Math.pow(Math.abs(Math.sin(t) / params.b), params.n3)), -1 / params.n1);
-            if (t > r) r = t;
+            if (t > r) {
+                r = t;
+            }
             ts.push(t);
         }
 
@@ -71,7 +70,7 @@ class Superformula {
             points.push([Math.abs(x) < 1e-6 ? 0 : x, Math.abs(y) < 1e-6 ? 0 : y]);
         }
 
-        return _line(points) + "Z";
+        return sLine(points) + "Z";
     }
 }
 
@@ -105,7 +104,7 @@ interface SuperformulaTypes {
     [key: string]: SuperformulaTypeObject
 }
 
-let _superformulaTypes: SuperformulaTypes = {
+const SuperformulaTypes: SuperformulaTypes = {
     asterisk: {m: 12, n1: .3, n2: 0, n3: 10, a: 1, b: 1},
     bean: {m: 2, n1: 1, n2: 4, n3: 8, a: 1, b: 1},
     butterfly: {m: 3, n1: 1, n2: 6, n3: 2, a: .6, b: 1},

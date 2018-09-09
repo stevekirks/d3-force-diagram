@@ -1,9 +1,9 @@
-import * as React from "react";
-import * as diagram from './diagram';
-import './app.scss';
-import './forms.scss';
 
-export interface AppProps { }
+import './app.css';
+import './forms.css';
+import * as diagram from './diagram';
+import * as React from "react";
+
 export interface AppState { 
     inputHighlightText: string, 
     showAllLabels: boolean, 
@@ -13,9 +13,9 @@ export interface AppState {
     hasForceSimulation: boolean
 }
 
-export class App extends React.Component<AppProps, AppState> {
+export class App extends React.Component<{}, AppState> {
 
-    constructor(props: AppProps) {
+    constructor(props: {}) {
         super(props);
         this.state = {
             inputHighlightText : '',
@@ -34,59 +34,14 @@ export class App extends React.Component<AppProps, AppState> {
         this.updateInputHighlightText = this.updateInputHighlightText.bind(this);
         this.handleInvertBackground = this.handleInvertBackground.bind(this);
         this.handleHasForceSimulation = this.handleHasForceSimulation.bind(this);
+        this.handleSearchForNodesClick = this.handleSearchForNodesClick.bind(this);
     }
 
-    componentDidMount() {
+    public componentDidMount() {
         diagram.load(this.highlightedNodeCountChanged);
     }
 
-    highlightedNodeCountChanged(hasNodesHighlighed: boolean) {
-        this.setState({hasHighlightedNodes: hasNodesHighlighed});
-    }
-
-    updateShowAllLabels(showAllLabels: boolean) {
-        this.setState({showAllLabels: showAllLabels});
-        diagram.showAllLabels(showAllLabels);
-    }
-
-    updateInputHighlightText(txt: string) {
-        this.setState({inputHighlightText: txt});
-        diagram.searchForNodes(txt);
-    }
-
-    handleInputHighlightText(event: React.ChangeEvent<HTMLInputElement>) {
-        let newVal = event.currentTarget.value;
-        this.updateInputHighlightText(newVal);
-        event.preventDefault();
-    }
-
-    handleShowAllLabels(event: React.ChangeEvent<HTMLInputElement>) {
-        let newVal = event.currentTarget.checked;
-        this.updateShowAllLabels(newVal);
-    }
-
-    handleShowOnlyHighlighted(event: React.ChangeEvent<HTMLInputElement>) {
-        let newVal = event.currentTarget.checked;
-        this.setState({showOnlyHighlighted: newVal});
-        diagram.showOnlyHighlighted(newVal);
-        if (newVal == true && this.state.showAllLabels == true) {
-            this.updateShowAllLabels(false);
-        }
-    }
-
-    handleInvertBackground(event: React.ChangeEvent<HTMLInputElement>) {
-        let newVal = event.currentTarget.checked;
-        this.setState({invertBackground: newVal});
-        diagram.invertBackground(newVal);
-    }
-
-    handleHasForceSimulation(event: React.ChangeEvent<HTMLInputElement>) {
-        let newVal = event.currentTarget.checked;
-        this.setState({hasForceSimulation: newVal});
-        diagram.setHasForceSimulation(newVal);
-    }
-
-    render() {
+    public render() {
         return <div>
 
             <div className="header row">
@@ -98,7 +53,7 @@ export class App extends React.Component<AppProps, AppState> {
                         value={this.state.inputHighlightText} 
                         disabled={this.state.showOnlyHighlighted} />
                     <button id="btnHighlight" 
-                        onClick={() => diagram.searchForNodes(this.state.inputHighlightText)}
+                        onClick={this.handleSearchForNodesClick}
                         disabled={this.state.showOnlyHighlighted}>Highlight</button>
                     <input id="chkboxShowAllLabels" type="checkbox" 
                         checked={this.state.showAllLabels} 
@@ -122,15 +77,65 @@ export class App extends React.Component<AppProps, AppState> {
             </div>
 
             <div className="content">
-                <div id="diagram" className={this.state.invertBackground ? "inverted" : ""}></div>
+                <div id="diagram" className={this.state.invertBackground ? "inverted" : ""} />
                 <div id="info-box">
-                    <h2 className="title"></h2>
-                    <div className="notes"></div>
-                    <table className="table"></table>
-                    <div className="timestamp"></div>
+                    <h2 className="title"/>
+                    <div className="notes"/>
+                    <table className="table"/>
+                    <div className="timestamp"/>
                 </div>
             </div>
 
     </div>;
+    }
+
+    private highlightedNodeCountChanged(hasNodesHighlighed: boolean) {
+        this.setState({hasHighlightedNodes: hasNodesHighlighed});
+    }
+
+    private updateShowAllLabels(showAllLabels: boolean) {
+        this.setState({showAllLabels});
+        diagram.showAllLabels(showAllLabels);
+    }
+
+    private updateInputHighlightText(txt: string) {
+        this.setState({inputHighlightText: txt});
+        diagram.searchForNodes(txt);
+    }
+
+    private handleSearchForNodesClick() {
+        diagram.searchForNodes(this.state.inputHighlightText)
+    }
+
+    private handleInputHighlightText(event: React.ChangeEvent<HTMLInputElement>) {
+        const newVal = event.currentTarget.value;
+        this.updateInputHighlightText(newVal);
+        event.preventDefault();
+    }
+
+    private handleShowAllLabels(event: React.ChangeEvent<HTMLInputElement>) {
+        const newVal = event.currentTarget.checked;
+        this.updateShowAllLabels(newVal);
+    }
+
+    private handleShowOnlyHighlighted(event: React.ChangeEvent<HTMLInputElement>) {
+        const newVal = event.currentTarget.checked;
+        this.setState({showOnlyHighlighted: newVal});
+        diagram.showOnlyHighlighted(newVal);
+        if (newVal === true && this.state.showAllLabels === true) {
+            this.updateShowAllLabels(false);
+        }
+    }
+
+    private handleInvertBackground(event: React.ChangeEvent<HTMLInputElement>) {
+        const newVal = event.currentTarget.checked;
+        this.setState({invertBackground: newVal});
+        diagram.invertBackground(newVal);
+    }
+
+    private handleHasForceSimulation(event: React.ChangeEvent<HTMLInputElement>) {
+        const newVal = event.currentTarget.checked;
+        this.setState({hasForceSimulation: newVal});
+        diagram.setHasForceSimulation(newVal);
     }
 }

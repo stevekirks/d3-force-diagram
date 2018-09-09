@@ -1,6 +1,5 @@
 import * as d3 from 'd3';
 import { schemePastel1 } from 'd3-scale-chromatic';
-import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './superformula';
 import { Link, Node, Hull } from '../data-interfaces';
 
 
@@ -10,9 +9,9 @@ export const nodeStateNormal = "node-state-normal";
 export const nodeStateHovered = "node-state-hover";
             
 export function defaultNodeSuperformulaType(d: Node) {
-    var shapeType = "circle";
+    let shapeType = "circle";
     if (d.nodes) {
-        shapeType = "circle"//"octagon";
+        shapeType = "circle"// "octagon";
     }
     return shapeType;
 }
@@ -23,13 +22,14 @@ export function defaultNodeSuperformulaSize(d: Node) {
 
 // Transform the list of nodes into groups
 export function getBiggestNodesPerGroup(nodes: Node[], links: Link[]) {
-    let groupedDictionaryOfNodes: { [key: string]: Node } = {};
-    for (var i = 0; i < nodes.length; i++) {
-        var group = nodes[i].group;
+    const groupedDictionaryOfNodes: { [key: string]: Node } = {};
+    for (const node of nodes) {
+        const group = node.group;
         if (group) {
-            groupedDictionaryOfNodes[group] = groupedDictionaryOfNodes[group] || nodes[i];
-            groupedDictionaryOfNodes[group] = (!groupedDictionaryOfNodes[group] || groupedDictionaryOfNodes[group].size < nodes[i].size)
-                ? nodes[i]
+            groupedDictionaryOfNodes[group] = groupedDictionaryOfNodes[group] || node;
+            groupedDictionaryOfNodes[group] = (!groupedDictionaryOfNodes[group] 
+                || ((groupedDictionaryOfNodes[group].size || nodeRadiusSizes.default) < (node.size || nodeRadiusSizes.default)))
+                ? node
                 : groupedDictionaryOfNodes[group];
             if (!groupedDictionaryOfNodes[group].size) {
                 groupedDictionaryOfNodes[group].size = getRadius(groupedDictionaryOfNodes[group]);
@@ -37,26 +37,26 @@ export function getBiggestNodesPerGroup(nodes: Node[], links: Link[]) {
         }
     }
 
-    for (let groupedDicPropName of d3.keys(groupedDictionaryOfNodes)) {
+    for (const groupedDicPropName of d3.keys(groupedDictionaryOfNodes)) {
         let groupedDic = groupedDictionaryOfNodes[groupedDicPropName];
         if (groupedDic.size === nodeRadiusSizes.default) {
             let nodeWithMostNumberOfInternalLinks = null;
             // If the biggest node is the default size, ensure the biggest node is the one with the most "internal" links
-            for (let j = 0; j < groupedDic.nodes.length; j++) {
-                let nodeWithLinkCount = { 'node': groupedDic.nodes[j], 'numberOfInternalLinks': 0 };
-                let nodeName = nodeWithLinkCount.node.name;
-                for (let k = 0; k < links.length; k++) {
+            for (const jNode of groupedDic.nodes!) {
+                const nodeWithLinkCount = { 'node': jNode, 'numberOfInternalLinks': 0 };
+                const nodeName = nodeWithLinkCount.node.name;
+                for (const kLink of links) {
                     let isInternalLink = false;
-                    if (links[k].source === nodeName || links[k].sourceChild === nodeName) {
-                        for (let l = 0; l < groupedDic.nodes.length; l++) {
-                            if (links[k].target === groupedDic.nodes[l].name || links[k].targetChild === groupedDic.nodes[l].name) {
+                    if (kLink.source === nodeName || kLink.sourceChild === nodeName) {
+                        for (const lNode of groupedDic.nodes!) {
+                            if (kLink.target === lNode.name || kLink.targetChild === lNode.name) {
                                 isInternalLink = true;
                                 break;
                             }
                         }
-                    } else if (links[k].target === nodeName || links[k].targetChild === nodeName) {
-                        for (let l = 0; l < groupedDic.nodes.length; l++) {
-                            if (links[k].source === groupedDic.nodes[l].name || links[k].sourceChild === groupedDic.nodes[l].name) {
+                    } else if (kLink.target === nodeName || kLink.targetChild === nodeName) {
+                        for (const lNode of groupedDic.nodes!) {
+                            if (kLink.source === lNode.name || kLink.sourceChild === lNode.name) {
                                 isInternalLink = true;
                                 break;
                             }
@@ -70,7 +70,7 @@ export function getBiggestNodesPerGroup(nodes: Node[], links: Link[]) {
                     nodeWithMostNumberOfInternalLinks = nodeWithLinkCount;
                 }
             }
-            groupedDic = nodeWithMostNumberOfInternalLinks.node;
+            groupedDic = nodeWithMostNumberOfInternalLinks!.node;
         }
     }
     return groupedDictionaryOfNodes;
@@ -83,9 +83,9 @@ export function getRadius(d: Node) {
     } else if (d.nodes) {
         resultRadius = nodeRadiusSizes.group;
         let biggestSize = d.nodes[0].size || nodeRadiusSizes.default;
-        for (let i = 0; i < d.nodes.length; i++) {
-            biggestSize = (d.nodes[i].size || nodeRadiusSizes.default) > biggestSize
-                ? (d.nodes[i].size || nodeRadiusSizes.default)
+        for (const iNode of d.nodes) {
+            biggestSize = (iNode.size || nodeRadiusSizes.default) > biggestSize
+                ? (iNode.size || nodeRadiusSizes.default)
                 : biggestSize;
         }
         resultRadius = biggestSize > resultRadius ? biggestSize : resultRadius;
@@ -94,26 +94,27 @@ export function getRadius(d: Node) {
 }
 
 export function getHighlightedRadius(d: Node) {
-    var resultRadius = getRadius(d) + Math.sqrt(getRadius(d));
+    const resultRadius = getRadius(d) + Math.sqrt(getRadius(d));
     return resultRadius;
 }
 
 // For Hulls
 export function convexHulls(nodes: Node[], index: (n: Node) => string, offset: number) {
-    let hulls: {[key: string]: [number, number][]} = {};
+    const hulls: {[key: string]: Array<[number, number]>} = {};
 
     // create point sets
-    for (let k = 0; k < nodes.length; ++k) {
-        let n = nodes[k];
-        if (n.nodes) continue;
-        let i = index(n);
+    for (const n of nodes) {
+        if (n.nodes) {
+            continue;
+        }
+        const i = index(n);
         if (!i) {
             continue;
         }
         if (!hulls.hasOwnProperty(i)) {
             hulls[i] = [];
         }
-        let offsetAndRadius = offset + getRadius(n) + Math.sqrt(getRadius(n));
+        const offsetAndRadius = offset + getRadius(n) + Math.sqrt(getRadius(n));
         hulls[i].push([(n.x || 0) - offsetAndRadius, (n.y || 0) - offsetAndRadius]);
         hulls[i].push([(n.x || 0) - offsetAndRadius, (n.y || 0) + offsetAndRadius]);
         hulls[i].push([(n.x || 0) + offsetAndRadius, (n.y || 0) - offsetAndRadius]);
@@ -121,17 +122,20 @@ export function convexHulls(nodes: Node[], index: (n: Node) => string, offset: n
     }
 
     // create convex hulls
-    let hullset: Hull[] = [];
-    for (let i in hulls) {
-        hullset.push({ group: i, path: d3.polygonHull(hulls[i]) });
+    const hullset: Hull[] = [];
+    for (const i of Object.keys(hulls)) {
+        const newHull = d3.polygonHull(hulls[i]);
+        if (newHull) {
+            hullset.push({ group: i, path: newHull });
+        }
     }
 
     return hullset;
 }
 
-export function drawCluster(d: {path: [number, number][]}) {
-    var curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
-    var clusterPath = curve(d.path);
+export function drawCluster(d: {path: Array<[number, number]>}) {
+    const curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
+    const clusterPath = curve(d.path);
     return clusterPath; // 0.8
 }
 
@@ -139,7 +143,7 @@ export function getGroup(n: Node) { return n.group; }
 // End For Hulls
 
 // Reusable transition
-export let transitionLinearSecond = d3.transition(null)
+export let transitionLinearSecond = d3.transition(undefined)
         .duration(1000)
         .ease(d3.easeLinear);
 
@@ -160,13 +164,13 @@ export function getNodeId(d: Node | string): string {
 function getLinkSourceName(d: Link): string {
     if (d.sourceChild) {
         if (isNodeNotString(d.sourceChild)) {
-            return d.sourceChild.name;
+            return d.sourceChild.name!;
         } else {
             return d.sourceChild
         }
     } else {
         if (isNodeNotString(d.source)) {
-            return d.source.name;
+            return d.source.name!;
         } else {
             return d.source;
         }
@@ -176,13 +180,13 @@ function getLinkSourceName(d: Link): string {
 function getLinkTargetName(d: Link): string {
     if (d.targetChild) {
         if (isNodeNotString(d.targetChild)) {
-            return d.targetChild.name;
+            return d.targetChild.name!;
         } else {
             return d.targetChild
         }
     } else {
         if (isNodeNotString(d.target)) {
-            return d.target.name;
+            return d.target.name!;
         } else {
             return d.target;
         }
@@ -190,7 +194,7 @@ function getLinkTargetName(d: Link): string {
 }
 
 export function getLinkGradientId(d: Link) {
-    let gradientId: string = "linkGrad-" + getLinkSourceName(d) + getLinkTargetName(d);
+    const gradientId: string = "linkGrad-" + getLinkSourceName(d) + getLinkTargetName(d);
     return gradientId.replace(/ /g, "");
 }
 
@@ -211,8 +215,8 @@ export function GetLinkTargetNameOrGroup(link: Link): string {
 export function GetNodeOrLinkTitle(nodeOrLink: Node | Link): string {
     let title = '';
     if (isLinkNotNode(nodeOrLink)) {
-        let sourceName = GetLinkSourceNameOrGroup(nodeOrLink);
-        let targetName = GetLinkTargetNameOrGroup(nodeOrLink);;
+        const sourceName = GetLinkSourceNameOrGroup(nodeOrLink);
+        const targetName = GetLinkTargetNameOrGroup(nodeOrLink);;
         title = "Link: " + sourceName + " - " + targetName;
     } else {
         title = GetNodeNameOrGroup(nodeOrLink);
@@ -222,7 +226,7 @@ export function GetNodeOrLinkTitle(nodeOrLink: Node | Link): string {
 
 export function findIndex(arr: any[], callback: (arg: any) => boolean): number {
     for (let i = 0; i < arr.length; i++) {
-        if (callback(arr[i]) == true) {
+        if (callback(arr[i]) === true) {
             return i;
         }
     }
@@ -230,7 +234,7 @@ export function findIndex(arr: any[], callback: (arg: any) => boolean): number {
 }
 
 export function nodeTextShiftRight(d: Node, multiplier?: number) {
-    let shiftRight = (getRadius(d) + 12) * (multiplier || 1);
+    const shiftRight = (getRadius(d) + 12) * (multiplier || 1);
     return "translate("+shiftRight+",0)";
 }
 

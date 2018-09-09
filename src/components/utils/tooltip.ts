@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import './tooltip.css';
 
 export default class Tooltip {
-    TooltipElement: d3.Selection<d3.BaseType, any, HTMLElement, any>;
+    private TooltipElement: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 
     // On instantiation, set the relative parent that the x and y coordinates will be calculated from
     constructor(relativeParentElement: d3.Selection<Element, any, HTMLElement, any>) {
@@ -15,8 +15,8 @@ export default class Tooltip {
                 .style("left", "0");
     }
 
-    Show(ele: d3.Selection<d3.BaseType, any, any, any>, html: string) {
-        let bbox = (ele.node() as any).getBBox();
+    public Show(ele: d3.Selection<d3.BaseType, any, any, any>, html: string) {
+        const bbox = (ele.node() as any).getBBox();
         this.TooltipElement
                 .html(html)
                 .style("top", bbox.y + bbox.height / 2 - 30 + "px")
@@ -26,7 +26,7 @@ export default class Tooltip {
                 .style("opacity", 1);
     }
 
-    Hide() {
+    public Hide() {
         this.TooltipElement
             .transition()
                 .duration(100)
