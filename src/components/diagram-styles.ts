@@ -17,25 +17,25 @@ const nodeStateDefault: NodeStateProperties = {
 };
 const nodeStateHighlight: NodeStateProperties = { 
     className: "node-state-highlight", 
-    nodeTextShiftMultiplier: 1.5,
+    nodeTextShiftMultiplier: 1.2,
     shapeSuperformula: new Superformula()
         .type(utils.defaultNodeSuperformulaType)
         .size((d) => { 
-            return 2 * utils.getHighlightedRadius(d); 
+            return 1.5 * utils.getHighlightedRadius(d); 
         })
 };
 const nodeStateSearch: NodeStateProperties = { 
     className: "node-state-search", 
-    nodeTextShiftMultiplier: 1.8, 
+    nodeTextShiftMultiplier: 1.2, 
     shapeSuperformula: new Superformula()
         .type(() => "gear")
         .size((d) => { 
-            return 3 * utils.getHighlightedRadius(d); 
+            return 2 * utils.getHighlightedRadius(d); 
         })
 };
 const nodeStateHighlightNeighbour: NodeStateProperties = { 
     className: "node-state-highlight-neighbour", 
-    nodeTextShiftMultiplier: 1.4, 
+    nodeTextShiftMultiplier: 1.1, 
     shapeSuperformula: defaultSupaDupaPath
 };
 const nodeStateUnhighlighted: NodeStateProperties = { 
