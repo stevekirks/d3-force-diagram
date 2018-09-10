@@ -302,7 +302,8 @@ function updateSimulation() {
                         const l = Math.sqrt(x1 * x1 + y1 * y1); // dist between node and biggest node
                         const r = (utils.getRadius(d) * 1.6) + utils.getRadius(biggestNode); // ideal dist between node and biggest node
                         if (l !== r) {
-                            const alphaMultiplier = (alpha / 2) + 0.5; // want decay, but not much
+                            // as decay falls from 1 to 0, set a mostly consistant multiplier with small peak
+                            const alphaMultiplier = -0.9 * Math.pow(alpha - 1, 2) - 0.9 * (alpha - 1) + 0.7;
                             const l1 = l - r;
                             const t = (l1 / l);
                             const xr = ((1-t) * biggestNode.x) + (t * d.x);
@@ -341,11 +342,6 @@ function updateSimulation() {
     } else {
         simulation.stop();
     }
-
-    // set timeout so the diagram doesn't just keep circling forever
-    setTimeout(() => {
-        simulation.alphaTarget(0);
-    }, 2000);
 }
 
 let dragSimulationRestarted = false;

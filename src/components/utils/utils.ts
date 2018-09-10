@@ -252,7 +252,8 @@ export function darkenIfInvertedBackground(color: string, isInverted: boolean): 
 
 export function simulationAlpha(simulation: d3.Simulation<Node, Link>) {
     simulation
-        .alphaMin(0.001)
-        .alphaTarget(0.05)
-        .alphaDecay(0.04);
+        .alpha(1)
+        .alphaMin(0.01)
+        .alphaDecay(0.06)
+        .alphaTarget(0);
 }
