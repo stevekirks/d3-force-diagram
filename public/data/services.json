@@ -1,5 +1,22 @@
 {
 	"nodes": [{
+			"name": "Chaos Monkey",
+			"notes": "A service not belonging to any group",
+			"timestamp": "2017-01-29T00:21:22.25",
+			"details": {
+				"CPUs": 100,
+				"Memory": "16GiB"
+			},
+			"size": 7
+		},{
+			"name": "Monkey Database",
+			"notes": "Another service not belonging to any group",
+			"timestamp": "2017-01-29T00:21:22.25",
+			"details": {
+				"Size": "100MiB"
+			},
+			"size": 5
+		},{
 			"group": "ESB",
 			"nodes": [{
 					"name": "ESB",
@@ -420,6 +437,17 @@
 		}
 	],
 	"links": [{
+			"source": "Chaos Monkey",
+			"target": "Monkey Database",
+			"details": {
+				"UserId": "admin"
+			}
+		}, {
+			"source": "Chaos Monkey",
+			"target": "ESB",
+			"targetChild": "SimpleStorage",
+			"details": {}
+		}, {
 			"source": "HR System",
 			"target": "HR System",
 			"sourceChild": "ReviewSubscriber",
