@@ -426,7 +426,7 @@ function onNodeDblclick(d: Node) {
     
         if (d.nodes) { // A grouped node
             ungroupNodes(d);
-        } else if (d.name) { // a single node
+        } else if (d.name && d.group) { // a single node
             regroupNodes(d);
         }
 
