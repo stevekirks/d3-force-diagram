@@ -250,7 +250,7 @@ export function darkenIfInvertedBackground(color: string, isInverted: boolean): 
     return isInverted ? d3.hsl(color).darker(2).toString() : color;
 }
 
-export function simulationAlpha(simulation: d3.Simulation<Node, Link>) {
+export function setSimulationAlpha(simulation: d3.Simulation<Node, Link>) {
     simulation
         .alpha(1)
         .alphaMin(0.01)

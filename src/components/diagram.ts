@@ -336,7 +336,7 @@ function updateSimulation() {
                 });
         });
     simulation.force<d3.ForceLink<Node, Link>>('link')!.links(links);
-    utils.simulationAlpha(simulation);
+    utils.setSimulationAlpha(simulation);
     if (hasForceSimulation) {
         simulation.restart();
     } else {
@@ -351,7 +351,7 @@ let nodeDragTimeoutId: number | null = null;
 function dragged(d: Node, idx: any, n: any) {
     if (hasForceSimulation) {
         if (!dragSimulationRestarted) {
-            simulation.alphaTarget(0.01).restart();
+            simulation.alphaTarget(0.02).restart();
             dragSimulationRestarted = true;
         }
         d.fx = d3.event.x;
@@ -568,7 +568,7 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
 
     const tableElement = divServiceDetails.select(".table");
     divServiceDetails.select(".table")
-        .selectAll('tr')
+        .selectAll("tr")
         .remove();
 
     const timestamp = nodeOrLink.timestamp || '';
@@ -577,23 +577,25 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
     if (nodeOrLink.details) { // node or link
         const tableData = d3.entries(nodeOrLink.details);
         tableElement
-            .data(tableData)
-            .enter()
-            .append('tr')
-            .data((row) => d3.values(row))
-            .enter()
-            .append('td')
-            .text((d: string) => d);
+            .selectAll("tr")
+                .data(tableData)
+                .enter()
+                .append("tr")
+            .selectAll("tr")
+                .data((row: { key: string, value: any }) => d3.values(row))
+                .enter()
+                .append("td")
+                .text((d: string) => d);
     } else if (!utils.isLinkNotNode(nodeOrLink) && nodeOrLink.group && nodeOrLink.nodes) { // group
         tableElement
-            .selectAll('tr')
-            .data(nodeOrLink.nodes)
-            .enter()
-            .append('tr')
-            .selectAll('td')
-            .data((row) => [row.name])
-            .enter()
-            .append('td')
-            .text((d: string) => d);
+            .selectAll("tr")
+                .data(nodeOrLink.nodes)
+                .enter()
+                .append("tr")
+            .selectAll("td")
+                .data((row: Node) => [row.name])
+                .enter()
+                .append("td")
+                .text((d: string) => d);
     }
 }
