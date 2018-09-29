@@ -201,7 +201,7 @@ function getLinkTargetName(d: Link): string {
 
 export function getLinkGradientId(d: Link) {
     const gradientId: string = "linkGrad-" + getLinkSourceName(d) + getLinkTargetName(d);
-    return gradientId.replace(/ /g, "").replace(/\(|\)/g, "+");
+    return gradientId.replace(/ /g, "_").replace(/\(|\)/g, "__").replace(/[^A-Za-z\w\-\:\.]/g, "___");
 }
 
 // The Node Name or Group is used to identify the node

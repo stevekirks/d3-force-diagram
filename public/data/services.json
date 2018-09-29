@@ -1,7 +1,7 @@
 {
 	"nodes": [{
-			"name": "Chaos Monkey",
-			"notes": "A service not belonging to any group",
+			"name": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
+			"notes": "A service not belonging to any group with odd characters in name",
 			"timestamp": "2017-01-29T00:21:22.25",
 			"details": {
 				"CPUs": 100,
@@ -437,13 +437,13 @@
 		}
 	],
 	"links": [{
-			"source": "Chaos Monkey",
+			"source": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
 			"target": "Monkey Database",
 			"details": {
 				"UserId": "admin"
 			}
 		}, {
-			"source": "Chaos Monkey",
+			"source": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
 			"target": "ESB",
 			"targetChild": "SimpleStorage",
 			"details": {}
