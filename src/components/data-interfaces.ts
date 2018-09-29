@@ -2,7 +2,7 @@ import { Superformula } from "./utils/superformula";
 
 export interface Node {
     name?: string,
-    group: string,
+    group?: string,
     details?: { [key: string]: object },
     notes?: string,
     size?: number,

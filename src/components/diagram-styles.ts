@@ -60,18 +60,16 @@ export class DiagramStyles {
             .transition(utils.transitionLinearSecond)
             .attr("d", (d: Node) => nodeStateDefault.shapeSuperformula.getPath(d))
             .attr("stroke-width", (d: Node) => 1)
-            .attr("stroke", (d: Node) => constants.colorScale(d.group))
-            .attr("fill", (d: Node) => constants.colorScale(d.group))
+            .attr("stroke", (d: Node) => constants.colorScale(utils.strToLowerOrEmpty(d.group)))
+            .attr("fill", (d: Node) => constants.colorScale(utils.strToLowerOrEmpty(d.group)))
             .style("stroke-opacity", 1)
             .style("fill-opacity", 1);
         nodeText
             .style("opacity", utils.nodeTextOpacity)
             .attr("text-anchor", "right")
             .attr("dominant-baseline", "central")
-            .attr("transform", (d: Node) => {
-                return utils.nodeTextShiftRight(d);
-            })
-            .text((d: Node) => d.name || d.group);
+            .attr("transform", (d: Node) => utils.nodeTextShiftRight(d))
+            .text((d: Node) => d.name || d.group || '');
     }
 
     public applyNodeSearch(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
@@ -291,7 +289,7 @@ export class DiagramStyles {
             .attr("d", utils.drawCluster)
             .transition()
                 .duration(750)
-                .style("fill", (d: Node) => constants.colorScale(d.group))
+                .style("fill", (d: Node) => constants.colorScale(d.group || ''))
                 .style("fill-opacity", 0.3);
     }
 

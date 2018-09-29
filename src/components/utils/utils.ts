@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-import { schemePastel1 } from 'd3-scale-chromatic';
 import { Link, Node, Hull } from '../data-interfaces';
 
 
@@ -8,7 +7,7 @@ export const hullOffset = 15;
 export const nodeStateNormal = "node-state-normal";
 export const nodeStateHovered = "node-state-hover";
             
-export function defaultNodeSuperformulaType(d: Node) {
+export function defaultNodeSuperformulaType(d: Node): string {
     let shapeType = "circle";
     if (d.nodes) {
         shapeType = "circle"// "octagon";
@@ -16,7 +15,7 @@ export function defaultNodeSuperformulaType(d: Node) {
     return shapeType;
 }
 
-export function defaultNodeSuperformulaSize(d: Node) {
+export function defaultNodeSuperformulaSize(d: Node): number {
     return 2 * getRadius(d);
 }
 
@@ -24,8 +23,8 @@ export function defaultNodeSuperformulaSize(d: Node) {
 export function getBiggestNodesPerGroup(nodes: Node[], links: Link[]) {
     const groupedDictionaryOfNodes: { [key: string]: Node } = {};
     for (const node of nodes) {
-        const group = node.group;
-        if (group) {
+        if (node.group) {
+            const group = strToLowerOrEmpty(node.group);
             groupedDictionaryOfNodes[group] = groupedDictionaryOfNodes[group] || node;
             groupedDictionaryOfNodes[group] = (!groupedDictionaryOfNodes[group] 
                 || ((groupedDictionaryOfNodes[group].size || nodeRadiusSizes.default) < (node.size || nodeRadiusSizes.default)))
@@ -47,16 +46,16 @@ export function getBiggestNodesPerGroup(nodes: Node[], links: Link[]) {
                 const nodeName = nodeWithLinkCount.node.name;
                 for (const kLink of links) {
                     let isInternalLink = false;
-                    if (kLink.source === nodeName || kLink.sourceChild === nodeName) {
+                    if (strEquals(kLink.source, nodeName) || strEquals(kLink.sourceChild, nodeName)) {
                         for (const lNode of groupedDic.nodes!) {
-                            if (kLink.target === lNode.name || kLink.targetChild === lNode.name) {
+                            if (strEquals(kLink.target, lNode.name) || strEquals(kLink.targetChild, lNode.name)) {
                                 isInternalLink = true;
                                 break;
                             }
                         }
-                    } else if (kLink.target === nodeName || kLink.targetChild === nodeName) {
+                    } else if (strEquals(kLink.target, nodeName) || strEquals(kLink.targetChild, nodeName)) {
                         for (const lNode of groupedDic.nodes!) {
-                            if (kLink.source === lNode.name || kLink.sourceChild === lNode.name) {
+                            if (strEquals(kLink.source, lNode.name) || strEquals(kLink.sourceChild, lNode.name)) {
                                 isInternalLink = true;
                                 break;
                             }
@@ -76,7 +75,7 @@ export function getBiggestNodesPerGroup(nodes: Node[], links: Link[]) {
     return groupedDictionaryOfNodes;
 }
 
-export function getRadius(d: Node) {
+export function getRadius(d: Node): number {
     let resultRadius = nodeRadiusSizes.node;
     if (d.size) {
         resultRadius = d.size;
@@ -93,28 +92,25 @@ export function getRadius(d: Node) {
     return resultRadius;
 }
 
-export function getHighlightedRadius(d: Node) {
+export function getHighlightedRadius(d: Node): number {
     const resultRadius = getRadius(d) + Math.sqrt(getRadius(d));
     return resultRadius;
 }
 
 // For Hulls
-export function convexHulls(nodes: Node[], index: (n: Node) => string, offset: number) {
+export function convexHulls(nodes: Node[]): Hull[] {
     const hulls: {[key: string]: Array<[number, number]>} = {};
 
     // create point sets
     for (const n of nodes) {
-        if (n.nodes) {
+        if (n.nodes || !n.group) {
             continue;
         }
-        const i = index(n);
-        if (!i) {
-            continue;
-        }
+        const i: string = strToLowerOrEmpty(n.group);
         if (!hulls.hasOwnProperty(i)) {
             hulls[i] = [];
         }
-        const offsetAndRadius = offset + getRadius(n) + Math.sqrt(getRadius(n));
+        const offsetAndRadius = hullOffset + getRadius(n) + Math.sqrt(getRadius(n));
         hulls[i].push([(n.x || 0) - offsetAndRadius, (n.y || 0) - offsetAndRadius]);
         hulls[i].push([(n.x || 0) - offsetAndRadius, (n.y || 0) + offsetAndRadius]);
         hulls[i].push([(n.x || 0) + offsetAndRadius, (n.y || 0) - offsetAndRadius]);
@@ -133,13 +129,13 @@ export function convexHulls(nodes: Node[], index: (n: Node) => string, offset: n
     return hullset;
 }
 
-export function drawCluster(d: {path: Array<[number, number]>}) {
+export function drawCluster(d: {path: Array<[number, number]>}): string | null {
     const curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
     const clusterPath = curve(d.path);
     return clusterPath; // 0.8
 }
 
-export function getGroup(n: Node) { return n.group; }
+export function getGroup(n: Node): string | null { return n.group || null; }
 // End For Hulls
 
 // Reusable transition
@@ -156,9 +152,19 @@ export function isLinkNotNode(x: Node | Link): x is Link {
 }
 
 export function getNodeId(d: Node | string): string {
-    return isNodeNotString(d) 
-        ? (d.name ? d.group + '-' + d.name : d.group)
-        : d;
+    let nodeId: string = '';
+    if (isNodeNotString(d)) {
+        if (d.name && d.group) {
+            nodeId = d.group + '-' + d.name;
+        } else if (d.name) {
+            nodeId = d.name;
+        } else if (d.group) {
+            nodeId = d.group;
+        }
+    } else {
+        nodeId = d;
+    }
+    return nodeId;
 }
 
 function getLinkSourceName(d: Link): string {
@@ -195,33 +201,38 @@ function getLinkTargetName(d: Link): string {
 
 export function getLinkGradientId(d: Link) {
     const gradientId: string = "linkGrad-" + getLinkSourceName(d) + getLinkTargetName(d);
-    return gradientId.replace(/ /g, "");
+    return gradientId.replace(/ /g, "").replace(/\(|\)/g, "+");
 }
 
 // The Node Name or Group is used to identify the node
-export function GetNodeNameOrGroup(node: Node): string {
-    return node.name || node.group;
+export function getNodeNameOrGroup(node: Node): string {
+    return node.name || node.group || '';
 }
 
-export function GetLinkSourceNameOrGroup(link: Link): string {
-    return (typeof link.source === 'string') ? link.source : (link.source.name || link.source.group);
+export function getLinkSourceNameOrGroup(link: Link): string {
+    return (typeof link.source === 'string') ? link.source : getNodeNameOrGroup(link.source);
 }
 
-export function GetLinkTargetNameOrGroup(link: Link): string {
-    return (typeof link.target === 'string') ? link.target : (link.target.name || link.target.group);
+export function getLinkTargetNameOrGroup(link: Link): string {
+    return (typeof link.target === 'string') ? link.target : getNodeNameOrGroup(link.target);
 }
 
 // The title can be used to identify the node or link
-export function GetNodeOrLinkTitle(nodeOrLink: Node | Link): string {
+export function getNodeOrLinkTitle(nodeOrLink: Node | Link): string {
     let title = '';
     if (isLinkNotNode(nodeOrLink)) {
-        const sourceName = GetLinkSourceNameOrGroup(nodeOrLink);
-        const targetName = GetLinkTargetNameOrGroup(nodeOrLink);;
+        const sourceName = getLinkSourceNameOrGroup(nodeOrLink);
+        const targetName = getLinkTargetNameOrGroup(nodeOrLink);;
         title = "Link: " + sourceName + " - " + targetName;
     } else {
-        title = GetNodeNameOrGroup(nodeOrLink);
+        title = getNodeNameOrGroup(nodeOrLink);
     }
     return title;
+}
+
+export function doGroupsMatch(node1: Node, node2: Node): boolean {
+    return node1 && node2 && node1.group != null && node2.group != null
+    && strToLowerOrEmpty(node1.group) === strToLowerOrEmpty(node2.group);
 }
 
 export function findIndex(arr: any[], callback: (arg: any) => boolean): number {
@@ -256,4 +267,17 @@ export function setSimulationAlpha(simulation: d3.Simulation<Node, Link>) {
         .alphaMin(0.01)
         .alphaDecay(0.06)
         .alphaTarget(0);
+}
+
+/**
+ * Safe, flexible string equals, case insensitive
+ */
+export function strEquals(val1: any | undefined, val2: any | undefined) {
+    return val1 != null && val2 != null 
+    && typeof val1 === 'string' && typeof val2 === 'string' 
+    && val1.toLowerCase() === val2.toLowerCase();
+}
+
+export function strToLowerOrEmpty(val: string | undefined | null): string {
+    return (val && val != null) ? val.toLowerCase() : '';
 }

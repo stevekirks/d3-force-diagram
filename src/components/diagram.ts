@@ -1,19 +1,15 @@
 import * as d3 from 'd3';
-import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './utils/superformula';
 import * as utils from './utils/utils';
 import * as searchUtils from './utils/search-matching';
 import { Link, Node, Hull } from './data-interfaces';
-import * as constants from './constants';
 import Tooltip from './utils/tooltip';
 import { DiagramStyles } from './diagram-styles';
-import { linkGradientColorEnd } from './constants';
 
 export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: boolean) => void) {
     highlightedNodesChangedCallback = highlightedNodesChangedCallbackArg;
 
     prepare();
 
-    
     // Show a loading message
     d3.select('#diagram')
         .append("h3")
@@ -95,11 +91,6 @@ let hasForceSimulation: boolean = true;
 
 // let tooltip: Tooltip; // Not currently used, but it works if needed
 
-const defaultSuperdupaPath = new Superformula()
-            .type(utils.defaultNodeSuperformulaType)
-			.size(utils.defaultNodeSuperformulaSize)
-            .segments(360);
-
 const diagramStyles = new DiagramStyles();
 
 // zooming
@@ -147,14 +138,14 @@ function prepare() {
     // Force Simulation
     simulation = d3.forceSimulation<Node,Link>()
         .force("link", d3.forceLink()
-            .id((d: Node) => utils.GetNodeNameOrGroup(d))
+            .id((d: Node) => utils.getNodeNameOrGroup(d))
             .distance((l: Link, i: number) => {
                 const n1 = l.source;
                 const n2 = l.target;
                 let d: number = utils.nodeRadiusSizes.default;
                 if (utils.isNodeNotString(n1) && utils.isNodeNotString(n2)) {
                     const combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
-                    d = (n1.group === n2.group
+                    d = (utils.doGroupsMatch(n1, n2)
                         ? combinedRadiuses
                         : combinedRadiuses * 5);
                 }
@@ -163,7 +154,7 @@ function prepare() {
             .strength((l: Link) => {
                 let s: number = 0.3;
                 if (typeof l.source !== "string" && typeof l.target !== "string") {
-                    s = (l.source.group === l.target.group ? 0.01 : 0.3);
+                    s = (utils.doGroupsMatch(l.source, l.target) ? 0.01 : 0.3);
                 }
                 return s;
             })
@@ -175,7 +166,7 @@ function prepare() {
 }
 
 function tickHulls() {
-    hullElements.data(utils.convexHulls(nodes, utils.getGroup, utils.hullOffset))
+    hullElements.data(utils.convexHulls(nodes))
         .attr("d", utils.drawCluster);
 }
 
@@ -214,7 +205,7 @@ function updateSimulation() {
     nodeElements = svg.select(".nodes").selectAll(".node")
         .data(nodes, utils.getNodeId);
 
-    hullElements = svg.select(".hulls").selectAll("path.hull").data(utils.convexHulls(nodes, utils.getGroup, utils.hullOffset));
+    hullElements = svg.select(".hulls").selectAll("path.hull").data(utils.convexHulls(nodes));
 
     linkGradients.exit().remove();
     const linkGradientsEnter = linkGradients.enter()
@@ -291,7 +282,7 @@ function updateSimulation() {
             // Force the node groups to cluster
             for (const d of nodes) {
                 if (d.group) {
-                    const biggestNode = biggestNodePerGroup[d.group];
+                    const biggestNode = biggestNodePerGroup[utils.strToLowerOrEmpty(d.group)];
                     if (biggestNode !== d) {
                         biggestNode.x = biggestNode.x || 0;
                         biggestNode.y = biggestNode.y || 0;
@@ -390,7 +381,7 @@ function onNodeClick(d: Node) {
         // with shift key pressed, select multiple, or deselect an already selected node
         
         // check if node is already selected
-        const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.GetNodeNameOrGroup(hn) === utils.GetNodeNameOrGroup(d));
+        const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameOrGroup(hn), utils.getNodeNameOrGroup(d)));
         if (highlightedNodeIdx > -1) { // then remove node
             highlightedNodes.splice(highlightedNodeIdx, 1);
         } else { // highlight it
@@ -445,7 +436,7 @@ function ungroupNodes(d: Node) {
     }
     // Remove grouped node and bring child nodes up to main array
     for (const k2 of nodes) {
-        if (k2.group && k2.nodes && k2.group === d.group) {
+        if (k2.group && k2.nodes && utils.doGroupsMatch(k2, d)) {
             nodes.splice(nodes.indexOf(k2), 1);
             break;
         }
@@ -464,14 +455,14 @@ function ungroupNodes(d: Node) {
     for (const childMNode of d.nodes!) {
         for (const lLink of links) {
             if (lLink.targetChild
-					&& ((typeof lLink.targetChild === 'string' && lLink.targetChild === childMNode.name)
-					|| (utils.isNodeNotString(lLink.targetChild) && lLink.targetChild.name === childMNode.name))) {
+					&& (utils.strEquals(lLink.targetChild, childMNode.name)
+					|| (utils.isNodeNotString(lLink.targetChild) && utils.strEquals(lLink.targetChild.name, childMNode.name)))) {
                 lLink.target = lLink.targetChild;
                 delete lLink.targetChild;
             }
             if (lLink.sourceChild
-					&& ((typeof lLink.sourceChild === 'string' && lLink.sourceChild === childMNode.name)
-					|| (utils.isNodeNotString(lLink.sourceChild) && lLink.sourceChild.name === childMNode.name))) {
+					&& (utils.strEquals(lLink.sourceChild, childMNode.name)
+					|| (utils.isNodeNotString(lLink.sourceChild) && utils.strEquals(lLink.sourceChild.name, childMNode.name)))) {
                 lLink.source = lLink.sourceChild;
                 delete lLink.sourceChild;
             }
@@ -485,23 +476,23 @@ function regroupNodes(d: Node) {
     const newNodeGroup: Node = { 'group': d.group, 'nodes': [], x: d.x, y: d.y, 'internalLinks': [] };
     for (let k = 0; k < nodes.length; ++k) {
         const kNode = nodes[k];
-        if (kNode.group === d.group) {
+        if (utils.doGroupsMatch(kNode, d)) {
             // Group child nodes and remove from main array
             nodes.splice(k, 1);
             newNodeGroup.nodes!.push(kNode);
             // Update links
             for (const mLink of links) {
-                if (((typeof mLink.target === 'string' && mLink.target === kNode.name)
-                    || (utils.isNodeNotString(mLink.target) && mLink.target.name === kNode.name))
-                    && (!mLink.targetChild || (utils.isNodeNotString(mLink.targetChild) ? mLink.targetChild.group !== kNode.name : true))) {
+                if ((utils.strEquals(mLink.target, kNode.name)
+                    || (utils.isNodeNotString(mLink.target) && utils.strEquals(mLink.target.name, kNode.name)))
+                    && (!mLink.targetChild || (utils.isNodeNotString(mLink.targetChild) ? !utils.strEquals(mLink.targetChild.group, kNode.name) : true))) {
                     mLink.targetChild = mLink.target;
-                    mLink.target = d.group;
+                    mLink.target = d.group || '';
                 }
-                if (((typeof mLink.source === 'string' && mLink.source === kNode.name)
-                    || (utils.isNodeNotString(mLink.source) && mLink.source.name === kNode.name))
-                    && (!mLink.sourceChild || (utils.isNodeNotString(mLink.sourceChild) ? mLink.sourceChild.group !== kNode.name : true))) {
+                if ((utils.strEquals(mLink.source, kNode.name)
+                    || (utils.isNodeNotString(mLink.source) && utils.strEquals(mLink.source.name, kNode.name)))
+                    && (!mLink.sourceChild || (utils.isNodeNotString(mLink.sourceChild) ? !utils.strEquals(mLink.sourceChild.group, kNode.name) : true))) {
                     mLink.sourceChild = mLink.source;
-                    mLink.source = d.group;
+                    mLink.source = d.group || '';
                 }
             }
             k--;
@@ -510,7 +501,8 @@ function regroupNodes(d: Node) {
     // Pass through links again and get rid of internal links
     for (let m1 = 0; m1 < links.length; m1++) {
         const m1Link = links[m1];
-        if (m1Link.target === d.group && m1Link.target === m1Link.source) {
+        if (utils.strEquals(m1Link.target, d.group) 
+        && utils.strEquals(m1Link.target, m1Link.source)) {
             newNodeGroup.internalLinks!.push(m1Link);
             links.splice(m1, 1);
             m1--;
@@ -561,7 +553,7 @@ function highlightNodes() {
 // Info Box
 function PopulateInfoBox(nodeOrLink: Node | Link) {
     const divServiceDetails = d3.select("#info-box");
-    const title = utils.GetNodeOrLinkTitle(nodeOrLink);
+    const title = utils.getNodeOrLinkTitle(nodeOrLink);
     const notes = !utils.isLinkNotNode(nodeOrLink) ? (nodeOrLink.notes || '') : '';
     divServiceDetails.select(".title").text(title);
     divServiceDetails.select(".notes").text(notes);

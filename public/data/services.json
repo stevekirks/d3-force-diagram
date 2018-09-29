@@ -27,7 +27,7 @@
 				}, {
 					"name": "ESB.Topic.Review",
 					"environment": "Production",
-					"group": "ESB",
+					"group": "esb",
 					"timestamp": "2016-08-13T22:21:56.71",
 					"details": {},
 					"size": 5

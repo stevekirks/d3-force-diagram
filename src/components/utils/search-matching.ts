@@ -6,7 +6,7 @@ import * as utils from './utils';
 export function SearchNodes(searchText: string, nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
     const matchedNodes = nodeElements
         .filter((d: Node) => {
-            const title = utils.GetNodeOrLinkTitle(d);
+            const title = utils.getNodeOrLinkTitle(d);
             if (title.length > 0) {
                 return title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1;
             }
@@ -19,11 +19,11 @@ export function SearchNodes(searchText: string, nodeElements: d3.Selection<d3.Ba
 export function GetMatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
     const unmatchedNodes = nodeElements
         .filter((d: Node) => {
-            const nodeNameOrGroup = utils.GetNodeNameOrGroup(d);
+            const nodeNameOrGroup = utils.getNodeNameOrGroup(d);
             if (nodeNameOrGroup.length > 0) {
                 for (const highlightedNode of highlightedNodes) {
-                    const highlightedNodeNameOrGroup = utils.GetNodeNameOrGroup(highlightedNode);
-                    if (nodeNameOrGroup === highlightedNodeNameOrGroup) {
+                    const highlightedNodeNameOrGroup = utils.getNodeNameOrGroup(highlightedNode);
+                    if (utils.strEquals(nodeNameOrGroup, highlightedNodeNameOrGroup)) {
                         return true;
                     }
                 }
@@ -42,22 +42,22 @@ export function GetUnmatchedNodes(highlightedNodes: Node[], nodeElements: d3.Sel
 export function GetMatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
     const matchedLinks = linkElements
         .filter((l: Link) => {
-            const linkSourceNameOrGroup = utils.GetLinkSourceNameOrGroup(l);
-            const linkTargetNameOrGroup = utils.GetLinkTargetNameOrGroup(l);
+            const linkSourceNameOrGroup = utils.getLinkSourceNameOrGroup(l);
+            const linkTargetNameOrGroup = utils.getLinkTargetNameOrGroup(l);
             let highlightedSourceFound = false;
             let highlightedTargetFound = false;
             // Either the source of the target must be a highlighted node
             for (const highlightedNode of highlightedNodes) {
-                const nodeNameOrGroup = utils.GetNodeNameOrGroup(highlightedNode);
+                const nodeNameOrGroup = utils.getNodeNameOrGroup(highlightedNode);
                 if (onlyLinksWithHighlightedSourceAndTarget === true) {
-                    if (nodeNameOrGroup === linkSourceNameOrGroup) {
+                    if (utils.strEquals(nodeNameOrGroup, linkSourceNameOrGroup)) {
                         highlightedSourceFound = true;
                     }
-                    if (nodeNameOrGroup === linkTargetNameOrGroup) {
+                    if (utils.strEquals(nodeNameOrGroup, linkTargetNameOrGroup)) {
                         highlightedTargetFound = true;
                     }
                 }
-                else if (nodeNameOrGroup === linkSourceNameOrGroup || nodeNameOrGroup === linkTargetNameOrGroup) {
+                else if (utils.strEquals(nodeNameOrGroup, linkSourceNameOrGroup) || utils.strEquals(nodeNameOrGroup, linkTargetNameOrGroup)) {
                     return true;
                 }
             }
@@ -77,7 +77,7 @@ export function GetMatchedHulls(highlightedNodes: Node[], hullElements: d3.Selec
         .filter((h: Hull) => {
             if (h.group.length > 0) {
                 for (const highlightedNode of highlightedNodes) {
-                    if (h.group === highlightedNode.group) {
+                    if (utils.strEquals(h.group, highlightedNode.group)) {
                         return true;
                     }
                 }
@@ -96,21 +96,21 @@ export function GetNeighbourNodes(highlightedNodes: Node[], highlightedLinks: Li
     nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
         // get list of nodes that are neighbours to the highlighted nodes
         const nodeNeighbourNamesOrGroups: string[] = [];
-        const highlightedNodeNamesOrGroups: string[] = highlightedNodes.map(n => utils.GetNodeNameOrGroup(n));
+        const highlightedNodeNamesOrGroups: string[] = highlightedNodes.map(n => utils.getNodeNameOrGroup(n));
         for (const highlightedLink of highlightedLinks) {
-            const linkSourceNameOrGroup = utils.GetLinkSourceNameOrGroup(highlightedLink);
-            const linkTargetNameOrGroup = utils.GetLinkTargetNameOrGroup(highlightedLink);            
-            if (highlightedNodeNamesOrGroups.some(nog => nog === linkSourceNameOrGroup) && !highlightedNodeNamesOrGroups.some(nog => nog === linkTargetNameOrGroup)) {
+            const linkSourceNameOrGroup = utils.getLinkSourceNameOrGroup(highlightedLink);
+            const linkTargetNameOrGroup = utils.getLinkTargetNameOrGroup(highlightedLink);            
+            if (highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup)) && !highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup))) {
                 // the target node is a neighbour
                 nodeNeighbourNamesOrGroups.push(linkTargetNameOrGroup);
-            } else if (!highlightedNodeNamesOrGroups.some(nog => nog === linkSourceNameOrGroup) && highlightedNodeNamesOrGroups.some(nog => nog === linkTargetNameOrGroup)) {
+            } else if (!highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup)) && highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkTargetNameOrGroup))) {
                 // the source node is a neighbour
                 nodeNeighbourNamesOrGroups.push(linkSourceNameOrGroup);
             }
         }
         // now that we have a list of nodes that are neighbours, filter by them
         const neighbourNodeElements = nodeElements.filter((n: Node) => {
-            const nameOrGroup = utils.GetNodeNameOrGroup(n);
+            const nameOrGroup = utils.getNodeNameOrGroup(n);
             return nodeNeighbourNamesOrGroups.indexOf(nameOrGroup) > -1;
         });
         return neighbourNodeElements;
