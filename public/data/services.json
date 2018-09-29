@@ -1,22 +1,5 @@
 {
 	"nodes": [{
-			"name": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
-			"notes": "A service not belonging to any group with odd characters in name",
-			"timestamp": "2017-01-29T00:21:22.25",
-			"details": {
-				"CPUs": 100,
-				"Memory": "16GiB"
-			},
-			"size": 7
-		},{
-			"name": "Monkey Database",
-			"notes": "Another service not belonging to any group",
-			"timestamp": "2017-01-29T00:21:22.25",
-			"details": {
-				"Size": "100MiB"
-			},
-			"size": 5
-		},{
 			"group": "ESB",
 			"nodes": [{
 					"name": "ESB",
@@ -434,20 +417,26 @@
 					"size": 5
 				}
 			]
+		}, {
+			"name": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
+			"notes": "A service not belonging to any group with odd characters in name",
+			"timestamp": "2017-01-29T00:21:22.25",
+			"details": {
+				"CPUs": 100,
+				"Memory": "16GiB"
+			},
+			"size": 7
+		},{
+			"name": "Monkey Database",
+			"notes": "Another service not belonging to any group",
+			"timestamp": "2017-01-29T00:21:22.25",
+			"details": {
+				"Size": "100MiB"
+			},
+			"size": 5
 		}
 	],
 	"links": [{
-			"source": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
-			"target": "Monkey Database",
-			"details": {
-				"UserId": "admin"
-			}
-		}, {
-			"source": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
-			"target": "ESB",
-			"targetChild": "SimpleStorage",
-			"details": {}
-		}, {
 			"source": "HR System",
 			"target": "HR System",
 			"sourceChild": "ReviewSubscriber",
@@ -712,6 +701,17 @@
 				"Asset URL": "http://wo/asset",
 				"User": ""
 			}
+		}, {
+			"source": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
+			"target": "Monkey Database",
+			"details": {
+				"UserId": "admin"
+			}
+		}, {
+			"source": "Chaos Monkey (1+!@#$%^&*,./;'[]`:\")",
+			"target": "ESB",
+			"targetChild": "SimpleStorage",
+			"details": {}
 		}
 	]
 }
