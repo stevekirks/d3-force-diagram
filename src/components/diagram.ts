@@ -27,6 +27,12 @@ export function load(highlightedNodesChangedCallbackArg: (highlightedNodeNames: 
         // Remove the loading message
         d3.select('#diagram').select(".loading-info").remove();
 
+        // Start nodes in the middle
+        for (const d of nodes) {
+            d.x = diagramWidth / 2;
+            d.y = diagramHeight / 2;
+        }
+
         // Show the data
         updateSimulation();
 

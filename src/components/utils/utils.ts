@@ -271,7 +271,7 @@ export function setSimulationAlpha(simulation: d3.Simulation<Node, Link>) {
     simulation
         .alpha(1)
         .alphaMin(0.01)
-        .alphaDecay(0.04)
+        .alphaDecay(0.02)
         .alphaTarget(0);
 }
 
