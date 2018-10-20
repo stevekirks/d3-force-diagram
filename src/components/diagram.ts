@@ -244,7 +244,7 @@ function updateSimulation() {
     linkGradients = linkGradientsEnter.merge(linkGradients);
 
     linkElements.exit()
-        .transition(utils.transitionLinearSecond)
+        .transition(utils.transitionLinear(100))
         .style("stroke-opacity", 1e-6)
         .remove();
     const linkEnterElements = linkElements.enter().append("line");
@@ -263,7 +263,7 @@ function updateSimulation() {
     linkElements = linkEnterElements.merge(linkElements);
 
     nodeElements.exit()
-        .transition(utils.transitionLinearSecond)
+        .transition(utils.transitionLinear(100))
         .style("stroke-opacity", 1e-6)
         .style("fill-opacity", 1e-6)
         .remove();
@@ -292,7 +292,7 @@ function updateSimulation() {
     nodeElements = nodeEnterElements.merge(nodeElements);
 
     hullElements.exit()
-        .transition(utils.transitionLinearSecond)
+        .transition(utils.transitionLinear(100))
         .style("fill-opacity", 1e-6)
         .remove();
     const hullEnterElements = hullElements.enter().append("path")
@@ -364,8 +364,6 @@ function updateSimulation() {
 }
 
 let dragSimulationRestarted = false;
-let nodeClickTimeoutId: number | null = null;
-let nodeDragTimeoutId: number | null = null;
 
 function dragged(d: Node, idx: any, n: any) {
     if (hasForceSimulation) {
@@ -404,42 +402,21 @@ function onBackgroundDiagramClick() {
 }
 
 function onNodeClick(d: Node) {
-    clearTimeout(nodeClickTimeoutId!);
-    nodeClickTimeoutId = null;
-    clearTimeout(nodeDragTimeoutId!);
-    nodeDragTimeoutId = null;
-
     hasSearchedForNodes = false;
-
-    nodeClickTimeoutId = window.setTimeout(() => {
-        // only do something if there wasnt a double-click
-        if (nodeClickTimeoutId != null) {
-            clearTimeout(nodeClickTimeoutId);
-            nodeClickTimeoutId = null;
             
-            // check if node is already selected
-            const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameAndGroup(hn), utils.getNodeNameAndGroup(d)));
-            if (highlightedNodeIdx > -1) { // then remove node
-                highlightedNodes.splice(highlightedNodeIdx, 1);
-            } else { // highlight it
-                highlightedNodes.push(d);
-                PopulateInfoBox(d);
-            }
-            showOnlyHighlighted(diagramStyles.showOnlyHighlighted && highlightedNodes.length > 0);
-        }
-    }, 150);
+    // check if node is already selected
+    const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameAndGroup(hn), utils.getNodeNameAndGroup(d)));
+    if (highlightedNodeIdx > -1) { // then remove node
+        highlightedNodes.splice(highlightedNodeIdx, 1);
+    } else { // highlight it
+        highlightedNodes.push(d);
+        PopulateInfoBox(d);
+    }
+    showOnlyHighlighted(diagramStyles.showOnlyHighlighted && highlightedNodes.length > 0);
     d3.event.stopPropagation();
 }
 
 function onNodeDblclick(d: Node) {
-    clearTimeout(nodeDragTimeoutId!);
-    nodeDragTimeoutId = null;
-
-    // cancel single click timer
-    if (nodeClickTimeoutId != null) {
-        clearTimeout(nodeClickTimeoutId);
-        nodeClickTimeoutId = null;
-    }
 
     if (d.nodes) { // A grouped node
         ungroupNodes(d);

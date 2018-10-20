@@ -5,9 +5,10 @@ import * as constants from './constants';
 import { Link, Node, Hull, NodeStateProperties } from './data-interfaces';
 import { BaseType } from 'd3';
 
-const durationLong: number = 500;// 750;
-const durationMediumLong: number = 350;// = 550;
-const durationMedium: number = 250;// = 450;
+const durationSecond: number = 1000;
+const durationLong: number = 400;
+const durationMediumLong: number = 250;
+const durationMedium: number = 200;
 const durationShort: number = 100;
 
 const defaultSupaDupaPath = new Superformula()
@@ -62,7 +63,7 @@ export class DiagramStyles {
         const nodeShape = nodeEles.selectAll(".node-shape");
         const nodeText = nodeEles.selectAll(".node-text");
         nodeShape
-            .transition(utils.transitionLinearSecond)
+            .transition(utils.transitionLinear(durationSecond))
             .attr("d", (d: Node) => nodeStateDefault.shapeSuperformula.getPath(d))
             .attr("stroke-width", (d: Node) => 1)
             .attr("stroke", (d: Node) => constants.colorScale(utils.strToLowerOrEmpty(d.group)))
@@ -233,7 +234,7 @@ export class DiagramStyles {
             .attr("stroke", (d) => {
                 return "url(#" + utils.getLinkGradientId(d) + ")";
             })
-            .transition(utils.transitionLinearSecond)
+            .transition(utils.transitionLinear(durationSecond))
             .style("stroke-opacity", 1);
     }
 

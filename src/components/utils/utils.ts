@@ -139,9 +139,11 @@ export function getGroup(n: Node): string | null { return n.group || null; }
 // End For Hulls
 
 // Reusable transition
-export let transitionLinearSecond = d3.transition(undefined)
-        .duration(1000)
+export function transitionLinear(duration: number) { 
+    return d3.transition()
+        .duration(duration)
         .ease(d3.easeLinear);
+}
 
 export function isNodeNotString(x: Node | string): x is Node {
     return typeof x !== "string";
