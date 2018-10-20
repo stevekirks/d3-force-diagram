@@ -100,7 +100,7 @@ export function GetNeighbourNodes(highlightedNodes: Node[], highlightedLinks: Li
         for (const highlightedLink of highlightedLinks) {
             const linkSourceNameOrGroup = utils.getLinkSourceNameOrGroup(highlightedLink);
             const linkTargetNameOrGroup = utils.getLinkTargetNameOrGroup(highlightedLink);            
-            if (highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup)) && !highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup))) {
+            if (highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup)) && !highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkTargetNameOrGroup))) {
                 // the target node is a neighbour
                 nodeNeighbourNamesOrGroups.push(linkTargetNameOrGroup);
             } else if (!highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkSourceNameOrGroup)) && highlightedNodeNamesOrGroups.some(nog => utils.strEquals(nog, linkTargetNameOrGroup))) {

@@ -3,25 +3,38 @@ import './app.css';
 import './forms.css';
 import * as diagram from './diagram';
 import * as React from "react";
+import { getUrlParameterAsArray, setUrlParameterAsArray, getUrlParameter, setUrlParameter } from './utils/url-query-param-utils';
 
 export interface AppState { 
     inputHighlightText: string, 
     showAllLabels: boolean, 
     showOnlyHighlighted: boolean, 
-    hasHighlightedNodes: boolean,
+    highlightedNodeNames: string[],
     invertBackground: boolean,
     hasForceSimulation: boolean
 }
+
+const urlParamLabelShowOnlyHighlighted = 'showHlOnly';
+const urlParamLabelHighlightedNodes = 'hlNodes';
+
 
 export class App extends React.Component<{}, AppState> {
 
     constructor(props: {}) {
         super(props);
+
+        let showOnlyHighlighted = getUrlParameter(urlParamLabelShowOnlyHighlighted) === "y";
+        const highlightedNodeNames = getUrlParameterAsArray(urlParamLabelHighlightedNodes);
+        if (showOnlyHighlighted && highlightedNodeNames.length === 0) {
+            setUrlParameter(urlParamLabelShowOnlyHighlighted, '');
+            showOnlyHighlighted = false;
+        }
+
         this.state = {
             inputHighlightText : '',
             showAllLabels: false,
-            showOnlyHighlighted: false,
-            hasHighlightedNodes: false,
+            showOnlyHighlighted,
+            highlightedNodeNames,
             invertBackground: false,
             hasForceSimulation: true
         }
@@ -29,7 +42,7 @@ export class App extends React.Component<{}, AppState> {
         this.handleInputHighlightText = this.handleInputHighlightText.bind(this);
         this.handleShowAllLabels = this.handleShowAllLabels.bind(this);
         this.handleShowOnlyHighlighted = this.handleShowOnlyHighlighted.bind(this);
-        this.highlightedNodeCountChanged = this.highlightedNodeCountChanged.bind(this);
+        this.handleHighlightedNodesChanged = this.handleHighlightedNodesChanged.bind(this);
         this.updateShowAllLabels = this.updateShowAllLabels.bind(this);
         this.updateInputHighlightText = this.updateInputHighlightText.bind(this);
         this.handleInvertBackground = this.handleInvertBackground.bind(this);
@@ -38,7 +51,7 @@ export class App extends React.Component<{}, AppState> {
     }
 
     public componentDidMount() {
-        diagram.load(this.highlightedNodeCountChanged);
+        diagram.load(this.handleHighlightedNodesChanged, this.state.highlightedNodeNames, this.state.showOnlyHighlighted);
     }
 
     public render() {
@@ -63,7 +76,7 @@ export class App extends React.Component<{}, AppState> {
                     <input id="chkboxShowOnlyHighlighted" type="checkbox" 
                         checked={this.state.showOnlyHighlighted} 
                         onChange={this.handleShowOnlyHighlighted}
-                        disabled={!this.state.hasHighlightedNodes} />
+                        disabled={this.state.highlightedNodeNames.length === 0} />
                     <label htmlFor="chkboxShowOnlyHighlighted">Show only highlighted</label>
                     <input id="chkboxInvertBackground" type="checkbox" 
                         checked={this.state.invertBackground} 
@@ -89,10 +102,6 @@ export class App extends React.Component<{}, AppState> {
     </div>;
     }
 
-    private highlightedNodeCountChanged(hasNodesHighlighed: boolean) {
-        this.setState({hasHighlightedNodes: hasNodesHighlighed});
-    }
-
     private updateShowAllLabels(showAllLabels: boolean) {
         this.setState({showAllLabels});
         diagram.showAllLabels(showAllLabels);
@@ -101,6 +110,15 @@ export class App extends React.Component<{}, AppState> {
     private updateInputHighlightText(txt: string) {
         this.setState({inputHighlightText: txt});
         diagram.searchForNodes(txt);
+    }
+
+    private handleHighlightedNodesChanged(highlightedNodeNames: string[]) {
+        this.setState({highlightedNodeNames});
+        setUrlParameterAsArray(urlParamLabelHighlightedNodes, highlightedNodeNames);
+        if (highlightedNodeNames.length === 0 && this.state.showOnlyHighlighted) {
+            this.setState({showOnlyHighlighted: false});
+            setUrlParameter(urlParamLabelShowOnlyHighlighted, '');
+        }
     }
 
     private handleSearchForNodesClick() {
@@ -121,6 +139,7 @@ export class App extends React.Component<{}, AppState> {
     private handleShowOnlyHighlighted(event: React.ChangeEvent<HTMLInputElement>) {
         const newVal = event.currentTarget.checked;
         this.setState({showOnlyHighlighted: newVal});
+        setUrlParameter(urlParamLabelShowOnlyHighlighted, newVal ? 'y' : '');
         diagram.showOnlyHighlighted(newVal);
         if (newVal === true && this.state.showAllLabels === true) {
             this.updateShowAllLabels(false);

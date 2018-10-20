@@ -5,6 +5,11 @@ import * as constants from './constants';
 import { Link, Node, Hull, NodeStateProperties } from './data-interfaces';
 import { BaseType } from 'd3';
 
+const durationLong: number = 500;// 750;
+const durationMediumLong: number = 350;// = 550;
+const durationMedium: number = 250;// = 450;
+const durationShort: number = 100;
+
 const defaultSupaDupaPath = new Superformula()
     .type(utils.defaultNodeSuperformulaType)
     .size(utils.defaultNodeSuperformulaSize)
@@ -80,7 +85,7 @@ export class DiagramStyles {
         const bigSuperdupaPath = new Superformula().type(() => "gear");
         nodeShape
             .transition()
-            .duration(550)
+            .duration(durationMediumLong)
             .attr("d", (d: Node) => bigSuperdupaPath.size((bd) => { 
                 return 5 * utils.getHighlightedRadius(bd); 
             }).getPath(d))
@@ -89,11 +94,11 @@ export class DiagramStyles {
             .style("stroke-opacity", 1)
             .style("fill-opacity", 1)
             .transition()
-            .duration(450)
+            .duration(durationMedium)
             .attr("d", (d: Node) => nodeStateSearch.shapeSuperformula.getPath(d));
         nodeText
             .transition()
-            .duration(750)
+            .duration(durationLong)
             .style("opacity", 1)
             .attr("transform", (d: Node) => {
                 return utils.nodeTextShiftRight(d, nodeStateSearch.nodeTextShiftMultiplier);
@@ -106,7 +111,7 @@ export class DiagramStyles {
         const nodeShape = nodeEles.selectAll(".node-shape");
         const nodeText = nodeEles.selectAll(".node-text");
         nodeShape.transition()
-            .duration(450)
+            .duration(durationMedium)
             .attr("d", (d: Node) => nodeStateHighlight.shapeSuperformula.getPath(d))
             .attr("stroke", (d: Node) => utils.darkenIfInvertedBackground(constants.highlightColor, this.invertedBackground))
             .attr("fill", (d: Node) => utils.darkenIfInvertedBackground(constants.highlightColor, this.invertedBackground))
@@ -114,7 +119,7 @@ export class DiagramStyles {
             .style("fill-opacity", 1);
         nodeText
             .transition()
-            .duration(750)
+            .duration(durationLong)
             .style("opacity", 1)
             .attr("transform", (d: Node) => {
                 return utils.nodeTextShiftRight(d, nodeStateHighlight.nodeTextShiftMultiplier);
@@ -127,14 +132,14 @@ export class DiagramStyles {
         const nodeShape = nodeEles.selectAll(".node-shape");
         const nodeText = nodeEles.selectAll(".node-text");
         nodeShape.transition()
-            .duration(750)
+            .duration(durationLong)
             .attr("d", (d: Node) => nodeStateHighlightNeighbour.shapeSuperformula.getPath(d))
             .attr("stroke", (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
             .attr("fill", (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
             .style("stroke-opacity", 1)
             .style("fill-opacity", 1);
         nodeText.transition()
-            .duration(750)
+            .duration(durationLong)
             .style("opacity", 1);
     }
 
@@ -144,14 +149,14 @@ export class DiagramStyles {
         const nodeShape = nodeEles.selectAll(".node-shape");
         const nodeText = nodeEles.selectAll(".node-text");
         nodeShape.transition()
-                .duration(750)
+                .duration(durationLong)
                 .attr("d", (d: Node) => nodeStateUnhighlighted.shapeSuperformula.getPath(d))
                 .attr("stroke", (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
                 .attr("fill", (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
                 .style("stroke-opacity", this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity)
                 .style("fill-opacity", this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
         nodeText.transition()
-                .duration(750)
+                .duration(durationLong)
                 .style("opacity", 0)
                 .attr("transform", (d) => {
                     return utils.nodeTextShiftRight(d as Node);
@@ -165,7 +170,7 @@ export class DiagramStyles {
         // A transition can already occur on a node, therefore using a custom tween
         const mouseOverTransition = d3.select(this.mouseOverLock)
             .transition()
-            .duration(200);
+            .duration(durationShort);
         mouseOverTransition
             .tween("style:stroke-width", () => {
                 const i = d3.interpolateNumber(1, 10);
@@ -198,7 +203,7 @@ export class DiagramStyles {
         // A transition can already occur on a node, therefore using a custom tween
         const mouseOutTransition = d3.select(this.mouseOutLock)
             .transition()
-            .duration(200);
+            .duration(durationShort);
         mouseOutTransition
             .tween("style:stroke-width", () => {
                 const i = d3.interpolateNumber(10, 1);
@@ -235,7 +240,7 @@ export class DiagramStyles {
     public applyLinkHighlight(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .style("stroke-opacity", 1);
     }
 
@@ -252,7 +257,7 @@ export class DiagramStyles {
     public applyLinkUnhighlighted(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkEles
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .style("stroke-opacity", this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
     }
 
@@ -273,14 +278,14 @@ export class DiagramStyles {
     public applyLinkGradientHighlight(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkGradientEles.selectAll("stop:nth-child(2)")
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
     public applyLinkGradientUnhighlighted(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
         linkGradientEles.selectAll("stop:nth-child(2)")
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
@@ -288,7 +293,7 @@ export class DiagramStyles {
         hullEles
             .attr("d", utils.drawCluster)
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .style("fill", (d: Node) => constants.colorScale(d.group || ''))
                 .style("fill-opacity", 0.3);
     }
@@ -296,7 +301,7 @@ export class DiagramStyles {
     public applyHullHighlight(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
         hullEles
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .style("fill", constants.highlightColor)
                 .style("fill-opacity", this.showOnlyHighlighted ? 0 : 0.2);
     }
@@ -304,7 +309,7 @@ export class DiagramStyles {
     public applyHullUnhighlighted(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
         hullEles
             .transition()
-                .duration(750)
+                .duration(durationLong)
                 .style("fill", constants.everythingElseColor)
                 .style("fill-opacity", this.showOnlyHighlighted ? 0 : 0.08);
     }

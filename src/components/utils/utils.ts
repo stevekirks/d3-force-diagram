@@ -209,6 +209,10 @@ export function getNodeNameOrGroup(node: Node): string {
     return node.name || node.group || '';
 }
 
+export function getNodeNameAndGroup(node: Node): string {
+    return (node.group || '') + '-' + (node.name || '');
+}
+
 export function getLinkSourceNameOrGroup(link: Link): string {
     return (typeof link.source === 'string') ? link.source : getNodeNameOrGroup(link.source);
 }
@@ -265,7 +269,7 @@ export function setSimulationAlpha(simulation: d3.Simulation<Node, Link>) {
     simulation
         .alpha(1)
         .alphaMin(0.01)
-        .alphaDecay(0.06)
+        .alphaDecay(0.04)
         .alphaTarget(0);
 }
 

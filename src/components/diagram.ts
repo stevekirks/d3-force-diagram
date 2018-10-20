@@ -5,7 +5,9 @@ import { Link, Node, Hull } from './data-interfaces';
 import Tooltip from './utils/tooltip';
 import { DiagramStyles } from './diagram-styles';
 
-export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: boolean) => void) {
+export function load(highlightedNodesChangedCallbackArg: (highlightedNodeNames: string[]) => void, 
+    initialHighlightedNodeNames: string[],
+    initiallyShowOnlyHighlighted: boolean) {
     highlightedNodesChangedCallback = highlightedNodesChangedCallbackArg;
 
     prepare();
@@ -27,6 +29,30 @@ export function load(highlightedNodesChangedCallbackArg: (hasHighlightedNodes: b
 
         // Show the data
         updateSimulation();
+
+        // Highlight nodes
+        if (initialHighlightedNodeNames.length > 0) {
+            for (const highlightedNodeName of initialHighlightedNodeNames) {
+                // check if node is already selected
+                const nodeIdx = utils.findIndex(nodes, (hn: Node) => utils.strEquals(utils.getNodeNameAndGroup(hn), highlightedNodeName));
+                if (nodeIdx > -1) { // highlight it
+                    highlightedNodes.push(nodes[nodeIdx]);
+                } else {
+                    // search for node next level down
+                    for (const hn of nodes) {
+                        if (hn.nodes) {
+                            for (const cn of hn.nodes) {
+                                if (utils.strEquals(utils.getNodeNameAndGroup(cn), highlightedNodeName)) {
+                                    highlightedNodes.push(cn);
+                                    ungroupNodes(hn);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            showOnlyHighlighted(initiallyShowOnlyHighlighted);
+        }
     }));
 }
 
@@ -39,7 +65,7 @@ export function searchForNodes(searchText: string) {
         highlightedNodes = matchedNodes.data();
         hasSearchedForNodes = true;
     }
-    highlightNodes();
+    showOnlyHighlighted(diagramStyles.showOnlyHighlighted && highlightedNodes.length > 0);
 }
 
 export function showAllLabels(show: boolean) {
@@ -65,7 +91,7 @@ export function setHasForceSimulation(dropForce: boolean) {
     updateSimulation();
 }
 
-let highlightedNodesChangedCallback: (hasHighlightedNodes: boolean) => void;
+let highlightedNodesChangedCallback: (highlightedNodeNames: string[]) => void;
 
 let nodes: Node[];
 let highlightedNodes: Node[] = [];
@@ -111,7 +137,9 @@ function prepare() {
                 .append("svg")
                 .classed("graph-svg-diagram", true)
                 .attr("width", diagramWidth)
-                .attr("height", diagramHeight);
+                .attr("height", diagramHeight)
+                .on('click', onBackgroundDiagramClick)
+                ;
     
     svgDefs = svg.append("defs");
 
@@ -368,6 +396,13 @@ function dragended(d: Node) {
     }
 }
 
+function onBackgroundDiagramClick() {
+    // Clear any highlighted nodes
+    highlightedNodes = [];
+    hasSearchedForNodes = false;
+    showOnlyHighlighted(false);
+}
+
 function onNodeClick(d: Node) {
     clearTimeout(nodeClickTimeoutId!);
     nodeClickTimeoutId = null;
@@ -376,56 +411,47 @@ function onNodeClick(d: Node) {
 
     hasSearchedForNodes = false;
 
-    // First check if the shift key is pressed
-    if (d3.event.shiftKey) {
-        // with shift key pressed, select multiple, or deselect an already selected node
-        
-        // check if node is already selected
-        const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameOrGroup(hn), utils.getNodeNameOrGroup(d)));
-        if (highlightedNodeIdx > -1) { // then remove node
-            highlightedNodes.splice(highlightedNodeIdx, 1);
-        } else { // highlight it
-            highlightedNodes.push(d);
-            PopulateInfoBox(d);
-        }
-        highlightNodes();
-    } else {
-        nodeClickTimeoutId = window.setTimeout(() => {
-            // only do something if there wasnt a double-click
-            if (nodeClickTimeoutId != null) {
-                clearTimeout(nodeClickTimeoutId);
-                nodeClickTimeoutId = null;
-                
+    nodeClickTimeoutId = window.setTimeout(() => {
+        // only do something if there wasnt a double-click
+        if (nodeClickTimeoutId != null) {
+            clearTimeout(nodeClickTimeoutId);
+            nodeClickTimeoutId = null;
+            
+            // check if node is already selected
+            const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameAndGroup(hn), utils.getNodeNameAndGroup(d)));
+            if (highlightedNodeIdx > -1) { // then remove node
+                highlightedNodes.splice(highlightedNodeIdx, 1);
+            } else { // highlight it
+                highlightedNodes.push(d);
                 PopulateInfoBox(d);
-                highlightedNodes = [ d ];
-                highlightNodes();
             }
-        }, 200);
-    }
+            showOnlyHighlighted(diagramStyles.showOnlyHighlighted && highlightedNodes.length > 0);
+        }
+    }, 150);
+    d3.event.stopPropagation();
 }
 
 function onNodeDblclick(d: Node) {
     clearTimeout(nodeDragTimeoutId!);
     nodeDragTimeoutId = null;
 
-    if (!d3.event.shiftKey) {
-        // cancel single click timer
-        if (nodeClickTimeoutId != null) {
-            clearTimeout(nodeClickTimeoutId);
-            nodeClickTimeoutId = null;
-        }
-    
-        if (d.nodes) { // A grouped node
-            ungroupNodes(d);
-        } else if (d.name && d.group) { // a single node
-            regroupNodes(d);
-        }
-
-        // Clear any highlighted nodes (animation time causes issues if it's before the grouping)
-        highlightedNodes = [];
-        hasSearchedForNodes = false;
-        highlightNodes();
+    // cancel single click timer
+    if (nodeClickTimeoutId != null) {
+        clearTimeout(nodeClickTimeoutId);
+        nodeClickTimeoutId = null;
     }
+
+    if (d.nodes) { // A grouped node
+        ungroupNodes(d);
+    } else if (d.name && d.group) { // a single node
+        regroupNodes(d);
+    }
+
+    // Clear any highlighted nodes (animation time causes issues if it's before the grouping)
+    hasSearchedForNodes = false;
+    highlightNodes();
+    
+    d3.event.stopPropagation();
 }
 
 function ungroupNodes(d: Node) {
@@ -470,6 +496,12 @@ function ungroupNodes(d: Node) {
     }
 
     updateSimulation();
+
+    // check if node is highlighted and remove
+    const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameAndGroup(hn), utils.getNodeNameAndGroup(d)));
+    if (highlightedNodeIdx > -1) { // then remove node
+        highlightedNodes.splice(highlightedNodeIdx, 1);
+    }
 }
 
 function regroupNodes(d: Node) {
@@ -496,6 +528,12 @@ function regroupNodes(d: Node) {
                 }
             }
             k--;
+
+            // check if node is highlighted and remove
+            const highlightedNodeIdx = utils.findIndex(highlightedNodes, (hn: Node) => utils.strEquals(utils.getNodeNameAndGroup(hn), utils.getNodeNameAndGroup(kNode)));
+            if (highlightedNodeIdx > -1) { // then remove node
+                highlightedNodes.splice(highlightedNodeIdx, 1);
+            }
         }
     }
     // Pass through links again and get rid of internal links
@@ -514,7 +552,7 @@ function regroupNodes(d: Node) {
 }
 
 function highlightNodes() {
-    highlightedNodesChangedCallback(highlightedNodes.length > 0);
+    highlightedNodesChangedCallback(highlightedNodes.map(n => utils.getNodeNameAndGroup(n)));
     if (highlightedNodes.length === 0) {
         diagramStyles.applyNodeDefault(nodeElements);
         diagramStyles.applyLinkDefault(linkElements);
@@ -589,5 +627,8 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
                 .enter()
                 .append("td")
                 .text((d: string) => d);
+    }
+    if (d3.event) {
+        d3.event.stopPropagation();
     }
 }
