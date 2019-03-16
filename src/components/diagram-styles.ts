@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import * as utils from './utils/utils';
-import { Superformula, SuperformulaTypes, SuperformulaTypeObject } from './utils/superformula';
+import { Superformula, SuperformulaTypes } from './utils/superformula';
 import * as constants from './constants';
 import { Link, Node, Hull, NodeStateProperties } from './data-interfaces';
 import { BaseType } from 'd3';
@@ -57,7 +57,7 @@ export class DiagramStyles {
     private mouseOverLock: any = {};
     private mouseOutLock: any = {};
 
-    public applyNodeDefault(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeDefault(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateDefault.className, true);
         const nodeShape = nodeEles.selectAll(".node-shape");
@@ -78,7 +78,7 @@ export class DiagramStyles {
             .text((d: Node) => d.name || d.group || '');
     }
 
-    public applyNodeSearch(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeSearch(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateSearch.className, true);
         const nodeShape = nodeEles.selectAll(".node-shape");
@@ -106,7 +106,7 @@ export class DiagramStyles {
             });
     }
 
-    public applyNodeHighlight(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeHighlight(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateHighlight.className, true);
         const nodeShape = nodeEles.selectAll(".node-shape");
@@ -127,7 +127,7 @@ export class DiagramStyles {
             });
     }
 
-    public applyNodeHighlightedNeighbour(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeHighlightedNeighbour(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateHighlightNeighbour.className, true);
         const nodeShape = nodeEles.selectAll(".node-shape");
@@ -144,7 +144,7 @@ export class DiagramStyles {
             .style("opacity", 1);
     }
 
-    public applyNodeUnhighlighted(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeUnhighlighted(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         clearStates(nodeEles);
         nodeEles.classed(nodeStateUnhighlighted.className, true);
         const nodeShape = nodeEles.selectAll(".node-shape");
@@ -164,7 +164,7 @@ export class DiagramStyles {
                 });
     }
 
-    public applyNodeMouseOver(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeMouseOver(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         const nodeState = getNodeStateProperties(nodeEles);
         const nodeShape = nodeEles.selectAll(".node-shape");
         const nodeText = nodeEles.selectAll(".node-text");
@@ -197,7 +197,7 @@ export class DiagramStyles {
         }
     }
 
-    public applyNodeMouseOut(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+    public applyNodeMouseOut(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
         const nodeState = getNodeStateProperties(nodeEles);
         const nodeShape = nodeEles.selectAll(".node-shape");
         const nodeText = nodeEles.selectAll(".node-text");
@@ -228,7 +228,7 @@ export class DiagramStyles {
         }
     }
 
-    public applyLinkDefault(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkDefault(linkEles: d3.Selection<SVGLineElement, Link, d3.BaseType, any>) {
         linkEles
             .attr("stroke-width", constants.defaultLinkStrokeWidth)
             .attr("stroke", (d) => {
@@ -238,31 +238,31 @@ export class DiagramStyles {
             .style("stroke-opacity", 1);
     }
 
-    public applyLinkHighlight(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkHighlight(linkEles: d3.Selection<SVGLineElement, Link, d3.BaseType, any>) {
         linkEles
             .transition()
                 .duration(durationLong)
                 .style("stroke-opacity", 1);
     }
 
-    public applyLinkMouseOver(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkMouseOver(linkEles: d3.Selection<SVGLineElement, Link, d3.BaseType, any>) {
         linkEles
             .attr("stroke-width", constants.defaultLinkStrokeWidth * 3);
     }
 
-    public applyLinkMouseOut(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkMouseOut(linkEles: d3.Selection<SVGLineElement, Link, d3.BaseType, any>) {
         linkEles
             .attr("stroke-width", constants.defaultLinkStrokeWidth);
     }
 
-    public applyLinkUnhighlighted(linkEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkUnhighlighted(linkEles: d3.Selection<SVGLineElement, Link, d3.BaseType, any>) {
         linkEles
             .transition()
                 .duration(durationLong)
                 .style("stroke-opacity", this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
     }
 
-    public applyLinkGradientDefault(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkGradientDefault(linkGradientEles: d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any>) {
         const stopOne = linkGradientEles.selectAll("stop:nth-child(1)");
         const stopTwo = linkGradientEles.selectAll("stop:nth-child(2)");
         linkGradientEles
@@ -276,21 +276,21 @@ export class DiagramStyles {
             .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
-    public applyLinkGradientHighlight(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkGradientHighlight(linkGradientEles: d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any>) {
         linkGradientEles.selectAll("stop:nth-child(2)")
             .transition()
                 .duration(durationLong)
                 .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
-    public applyLinkGradientUnhighlighted(linkGradientEles: d3.Selection<BaseType, Link, BaseType, any>) {
+    public applyLinkGradientUnhighlighted(linkGradientEles: d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any>) {
         linkGradientEles.selectAll("stop:nth-child(2)")
             .transition()
                 .duration(durationLong)
                 .attr("stop-color", this.invertedBackground ? constants.linkGradientColorEndInverted : constants.linkGradientColorEnd);
     }
 
-    public applyHullDefault(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
+    public applyHullDefault(hullEles: d3.Selection<SVGPathElement, Hull, BaseType, any>) {
         hullEles
             .attr("d", utils.drawCluster)
             .transition()
@@ -299,7 +299,7 @@ export class DiagramStyles {
                 .style("fill-opacity", 0.3);
     }
 
-    public applyHullHighlight(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
+    public applyHullHighlight(hullEles: d3.Selection<SVGPathElement, Hull, BaseType, any>) {
         hullEles
             .transition()
                 .duration(durationLong)
@@ -307,7 +307,7 @@ export class DiagramStyles {
                 .style("fill-opacity", this.showOnlyHighlighted ? 0 : 0.2);
     }
 
-    public applyHullUnhighlighted(hullEles: d3.Selection<BaseType, Hull, BaseType, any>) {
+    public applyHullUnhighlighted(hullEles: d3.Selection<SVGPathElement, Hull, BaseType, any>) {
         hullEles
             .transition()
                 .duration(durationLong)
@@ -317,7 +317,7 @@ export class DiagramStyles {
 
 }
 
-function clearStates(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
+function clearStates(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
     nodeEles.classed(nodeStateDefault.className, false);
     nodeEles.classed(nodeStateHighlight.className, false);
     nodeEles.classed(nodeStateSearch.className, false);
@@ -325,7 +325,7 @@ function clearStates(nodeEles: d3.Selection<BaseType, Node, BaseType, any>) {
     nodeEles.classed(nodeStateUnhighlighted.className, false);
 }
 
-function getNodeStateProperties(nodeEles: d3.Selection<BaseType, Node, BaseType, any>): NodeStateProperties {
+function getNodeStateProperties(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>): NodeStateProperties {
     if (nodeEles.classed(nodeStateDefault.className)) {
         return nodeStateDefault;
     } else if (nodeEles.classed(nodeStateHighlight.className)) {

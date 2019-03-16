@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import './tooltip.css';
 
 export default class Tooltip {
-    private TooltipElement: d3.Selection<d3.BaseType, any, HTMLElement, any>;
+    private TooltipElement: d3.Selection<HTMLDivElement, any, HTMLElement, any>;
 
     // On instantiation, set the relative parent that the x and y coordinates will be calculated from
     constructor(relativeParentElement: d3.Selection<Element, any, HTMLElement, any>) {

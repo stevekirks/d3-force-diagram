@@ -3,7 +3,7 @@ import { Link, Node, Hull } from '../data-interfaces';
 import * as utils from './utils';
 
 // Search for nodes using given text (this is not an exact match)
-export function SearchNodes(searchText: string, nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
+export function SearchNodes(searchText: string, nodeElements: d3.Selection<SVGGElement, Node, d3.BaseType, any>): d3.Selection<SVGGElement, Node, d3.BaseType, any> {
     const matchedNodes = nodeElements
         .filter((d: Node) => {
             const title = utils.getNodeOrLinkTitle(d);
@@ -16,7 +16,7 @@ export function SearchNodes(searchText: string, nodeElements: d3.Selection<d3.Ba
 }
 
 // Get the nodes matching those highlighted
-export function GetMatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
+export function GetMatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selection<SVGGElement, Node, d3.BaseType, any>): d3.Selection<SVGGElement, Node, d3.BaseType, any> {
     const unmatchedNodes = nodeElements
         .filter((d: Node) => {
             const nodeNameOrGroup = utils.getNodeNameOrGroup(d);
@@ -34,15 +34,12 @@ export function GetMatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selec
 }
 
 // Get the nodes not matching those highlighted
-export function GetUnmatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
+export function GetUnmatchedNodes(highlightedNodes: Node[], nodeElements: d3.Selection<SVGGElement, Node, d3.BaseType, any>): d3.Selection<SVGGElement, Node, d3.BaseType, any> {
     return nodeElements.filter(a => GetMatchedNodes(highlightedNodes, nodeElements).data().indexOf(a) === -1);
 }
 
-// Get the links to the highlighted nodes
-export function GetMatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
-    const matchedLinks = linkElements
-        .filter((l: Link) => {
-            const linkSourceNameOrGroup = utils.getLinkSourceNameOrGroup(l);
+function DoesLinkMatch(highlightedNodes: Node[], l: Link, onlyLinksWithHighlightedSourceAndTarget: boolean): boolean {
+    const linkSourceNameOrGroup = utils.getLinkSourceNameOrGroup(l);
             const linkTargetNameOrGroup = utils.getLinkTargetNameOrGroup(l);
             let highlightedSourceFound = false;
             let highlightedTargetFound = false;
@@ -61,18 +58,37 @@ export function GetMatchedLinks(highlightedNodes: Node[], linkElements: d3.Selec
                     return true;
                 }
             }
-            return highlightedSourceFound && highlightedTargetFound;
+    return highlightedSourceFound && highlightedTargetFound;
+}
+
+// Get the links to the highlighted nodes
+export function GetMatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<SVGLineElement, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<SVGLineElement, Link, d3.BaseType, any> {
+    const matchedLinks = linkElements
+        .filter((l: Link) => {
+            return DoesLinkMatch(highlightedNodes, l, onlyLinksWithHighlightedSourceAndTarget);
+        });
+    return matchedLinks;
+}
+
+export function GetMatchedLinkGradients(highlightedNodes: Node[], linkElements: d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any> {
+    const matchedLinks = linkElements
+        .filter((l: Link) => {
+            return DoesLinkMatch(highlightedNodes, l, onlyLinksWithHighlightedSourceAndTarget);
         });
     return matchedLinks;
 }
 
 // Get the links with no direct connection to the highlighted nodes
-export function GetUnmatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<d3.BaseType, Link, d3.BaseType, any> {
+export function GetUnmatchedLinks(highlightedNodes: Node[], linkElements: d3.Selection<SVGLineElement, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<SVGLineElement, Link, d3.BaseType, any> {
     return linkElements.filter(a => GetMatchedLinks(highlightedNodes, linkElements, onlyLinksWithHighlightedSourceAndTarget).data().indexOf(a) === -1);
 }
 
+export function GetUnmatchedLinkGradients(highlightedNodes: Node[], linkElements: d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any>, onlyLinksWithHighlightedSourceAndTarget: boolean): d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any> {
+    return linkElements.filter(a => GetMatchedLinkGradients(highlightedNodes, linkElements, onlyLinksWithHighlightedSourceAndTarget).data().indexOf(a) === -1);
+}
+
 // Get the hulls with highlighted nodes inside
-export function GetMatchedHulls(highlightedNodes: Node[], hullElements: d3.Selection<d3.BaseType, Hull, d3.BaseType, any>): d3.Selection<d3.BaseType, Hull, d3.BaseType, any> {
+export function GetMatchedHulls(highlightedNodes: Node[], hullElements: d3.Selection<SVGPathElement, Hull, d3.BaseType, any>): d3.Selection<SVGPathElement, Hull, d3.BaseType, any> {
     const matchedHulls = hullElements
         .filter((h: Hull) => {
             if (h.group.length > 0) {
@@ -88,12 +104,12 @@ export function GetMatchedHulls(highlightedNodes: Node[], hullElements: d3.Selec
 }
 
 // Get the hulls with highlighted nodes inside
-export function GetUnmatchedHulls(highlightedHulls: Hull[], hullElements: d3.Selection<d3.BaseType, Hull, d3.BaseType, any>): d3.Selection<d3.BaseType, Hull, d3.BaseType, any> {
+export function GetUnmatchedHulls(highlightedHulls: Hull[], hullElements: d3.Selection<SVGPathElement, Hull, d3.BaseType, any>): d3.Selection<SVGPathElement, Hull, d3.BaseType, any> {
     return hullElements.filter(a => GetMatchedHulls(highlightedHulls, hullElements).data().indexOf(a) === -1);
 }
 
 export function GetNeighbourNodes(highlightedNodes: Node[], highlightedLinks: Link[],
-    nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>): d3.Selection<d3.BaseType, Node, d3.BaseType, any> {
+    nodeElements: d3.Selection<SVGGElement, Node, d3.BaseType, any>): d3.Selection<SVGGElement, Node, d3.BaseType, any> {
         // get list of nodes that are neighbours to the highlighted nodes
         const nodeNeighbourNamesOrGroups: string[] = [];
         const highlightedNodeNamesOrGroups: string[] = highlightedNodes.map(n => utils.getNodeNameOrGroup(n));

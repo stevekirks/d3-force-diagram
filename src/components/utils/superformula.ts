@@ -129,4 +129,4 @@ const SuperformulaTypes: SuperformulaTypes = {
     triangle: {m: 3, n1: 100, n2: 200, n3: 200, a: 1, b: 1}
 };
 
-export { Superformula, SuperformulaTypes, SuperformulaTypeObject };
+export { Superformula, SuperformulaTypes };

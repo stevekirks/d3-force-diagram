@@ -20,9 +20,9 @@ export function load(highlightedNodesChangedCallbackArg: (highlightedNodeNames: 
 
     // Load the data
     const dataUrl: string = process.env.REACT_APP_DATA_SERVICES_URL!;
-    d3.json(dataUrl).then(((response: {nodes: Node[], links: Link[]}) => {
-        nodes = response.nodes;
-        links = response.links;
+    d3.json(dataUrl).then(((response: { nodes?: Node[], links?: Link[] }) => {
+        nodes = response.nodes!;
+        links = response.links!;
 
         // Remove the loading message
         d3.select('#diagram').select(".loading-info").remove();
@@ -110,10 +110,10 @@ const nodePadding = 1.5;
 const clusterPadding = 6;
 const rainbow = d3.interpolateRainbow;
 
-let nodeElements: d3.Selection<d3.BaseType, Node, d3.BaseType, any>;
-let linkElements: d3.Selection<d3.BaseType, Link, d3.BaseType, any>;
-let linkGradients: d3.Selection<d3.BaseType, Link, d3.BaseType, any>;
-let hullElements: d3.Selection<d3.BaseType, Hull, d3.BaseType, any>;
+let nodeElements: d3.Selection<SVGGElement, Node, d3.BaseType, any>;
+let linkElements: d3.Selection<SVGLineElement, Link, d3.BaseType, any>;
+let linkGradients: d3.Selection<SVGLinearGradientElement, Link, d3.BaseType, any>;
+let hullElements: d3.Selection<SVGPathElement, Hull, d3.BaseType, any>;
 
 let svg: d3.Selection<d3.BaseType, any, HTMLElement, any>;
 let svgDefs: d3.Selection<d3.BaseType, any, HTMLElement, any>;
@@ -139,15 +139,14 @@ function prepare() {
     diagramWidth = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")!).width!.replace('px', ''))) - 10;
     diagramHeight = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")!).height!.replace('px', ''))) - 10;
 
-    svg = d3.select('#diagram')
+    svg = <any>d3.select('#diagram')
                 .append("svg")
                 .classed("graph-svg-diagram", true)
                 .attr("width", diagramWidth)
                 .attr("height", diagramHeight)
-                .on('click', onBackgroundDiagramClick)
-                ;
+                .on('click', onBackgroundDiagramClick);
     
-    svgDefs = svg.append("defs");
+    svgDefs = <any>svg.append("defs");
 
     svg.append("g") // first so it's not on top
 			.classed("hulls", true);
@@ -162,18 +161,19 @@ function prepare() {
 
     // zooming
     zoom = d3.zoom()
-        .scaleExtent([1, 40])
+        .scaleExtent([0, 40])
         .translateExtent([[0, 0], [diagramWidth, diagramHeight]])
         .on("zoom", zoomed);
 
-    svg.call(zoom)
+    svg.call(zoom as any)
         .on("dblclick.zoom", null); // disable double-click zoom
 
     // Force Simulation
     simulation = d3.forceSimulation<Node,Link>()
         .force("link", d3.forceLink()
             .id((d: Node) => utils.getNodeNameOrGroup(d))
-            .distance((l: Link, i: number) => {
+            .distance((slDatum: d3.SimulationLinkDatum<{}>, i: number, links: d3.SimulationLinkDatum<{}>[]) => {
+                const l = slDatum as Link;
                 const n1 = l.source;
                 const n2 = l.target;
                 let d: number = utils.nodeRadiusSizes.default;
@@ -185,7 +185,8 @@ function prepare() {
                 }
                 return d;
             })
-            .strength((l: Link) => {
+            .strength((slDatum: d3.SimulationLinkDatum<{}>) => {
+                const l = slDatum as Link;
                 let s: number = 0.3;
                 if (typeof l.source !== "string" && typeof l.target !== "string") {
                     s = (utils.doGroupsMatch(l.source, l.target) ? 0.01 : 0.3);
@@ -233,17 +234,15 @@ function tickLinks() {
 }
 
 function updateSimulation() {
-    linkElements = svg.select(".links").selectAll("line").data(links, utils.getLinkGradientId);
-    linkGradients = svgDefs.selectAll("linearGradient").data(links, utils.getLinkGradientId);
+    linkElements = svg.select(".links").selectAll("line").data(links, utils.getLinkGradientId as any) as any;
+    linkGradients = svgDefs.selectAll("linearGradient").data(links, utils.getLinkGradientId as any) as any;
 
-    nodeElements = svg.select(".nodes").selectAll(".node")
-        .data(nodes, utils.getNodeId);
+    nodeElements = svg.select(".nodes").selectAll(".node").data(nodes, utils.getNodeId) as any;
 
-    hullElements = svg.select(".hulls").selectAll("path.hull").data(utils.convexHulls(nodes));
+    hullElements = svg.select(".hulls").selectAll("path.hull").data(utils.convexHulls(nodes)) as any;
 
     linkGradients.exit().remove();
-    const linkGradientsEnter = linkGradients.enter()
-        .append("linearGradient");
+    const linkGradientsEnter = linkGradients.enter().append("linearGradient");
     linkGradientsEnter.append("stop");
     linkGradientsEnter.append("stop");
     diagramStyles.applyLinkGradientDefault(linkGradientsEnter);
@@ -354,9 +353,8 @@ function updateSimulation() {
 
             nodeElements
                 .attr("transform", (d: Node) => {
-                    // Keep nodes within boundary
-                    d.x = Math.max((utils.getHighlightedRadius(d) + 10), Math.min(diagramWidth - (utils.getHighlightedRadius(d) + 10), (isNaN(d.x!) || d.x === 0 ? diagramWidth / 2 : d.x!)));
-                    d.y = Math.max((utils.getHighlightedRadius(d) + 10), Math.min(diagramHeight - (utils.getHighlightedRadius(d) + 10), (isNaN(d.y!) || d.y === 0 ? diagramHeight / 2 : d.y!)));
+                    d.x = isNaN(d.x!) || d.x === 0 ? diagramWidth / 2 : d.x!;
+                    d.y = isNaN(d.y!) || d.y === 0 ? diagramHeight / 2 : d.y!;
                     return "translate(" + d.x + "," + d.y + ")"
                 });
         });
@@ -450,7 +448,7 @@ function ungroupNodes(d: Node) {
             break;
         }
     }
-    Array.prototype.push.apply(nodes, d.nodes);
+    Array.prototype.push.apply(nodes, d.nodes as any);
     // Add internal links
     if (d.internalLinks) {
         for (const k3Link of d.internalLinks) {
@@ -545,9 +543,9 @@ function highlightNodes() {
         const matchedNodesData = highlightedNodes;
         const matchedNodes = searchUtils.GetMatchedNodes(matchedNodesData, nodeElements);
         const matchedLinks = searchUtils.GetMatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
-        const matchedLinkGradients = searchUtils.GetMatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
+        const matchedLinkGradients = searchUtils.GetMatchedLinkGradients(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
         const unmatchedLinks = searchUtils.GetUnmatchedLinks(matchedNodesData, linkElements, diagramStyles.showOnlyHighlighted);
-        const unmatchedLinkGradients = searchUtils.GetUnmatchedLinks(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
+        const unmatchedLinkGradients = searchUtils.GetUnmatchedLinkGradients(matchedNodesData, linkGradients, diagramStyles.showOnlyHighlighted);
         const neighbourNodes = searchUtils.GetNeighbourNodes(matchedNodesData, matchedLinks.data(), nodeElements);
         const highlightedAndNeighbourNodesData = matchedNodesData.concat(neighbourNodes.data());
         const unmatchedNodes = searchUtils.GetUnmatchedNodes(highlightedAndNeighbourNodesData, nodeElements);
@@ -606,7 +604,7 @@ function PopulateInfoBox(nodeOrLink: Node | Link) {
                 .enter()
                 .append("tr")
             .selectAll("td")
-                .data((row: Node) => [row.name])
+                .data((row: Node) => [row.name!])
                 .enter()
                 .append("td")
                 .text((d: string) => d);
