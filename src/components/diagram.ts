@@ -131,6 +131,8 @@ function zoomed() {
     svg.select(".links").attr("transform", d3.event.transform);
     svg.select(".nodes").attr("transform", d3.event.transform);
     svg.select(".hulls").attr("transform", d3.event.transform);
+    let zoomFactor: any = d3.event.transform.k;
+    d3.selectAll(".node-text").style('font-size', (14 * (1/zoomFactor)) + "px");
 }
 // Force Simulation
 let simulation: d3.Simulation<Node, Link> = d3.forceSimulation<Node,Link>();
@@ -139,14 +141,14 @@ function prepare() {
     diagramWidth = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")!).width!.replace('px', ''))) - 10;
     diagramHeight = Math.floor(Number(window.getComputedStyle(document.getElementById("diagram")!).height!.replace('px', ''))) - 10;
 
-    svg = <any>d3.select('#diagram')
+    svg = d3.select('#diagram')
                 .append("svg")
                 .classed("graph-svg-diagram", true)
                 .attr("width", diagramWidth)
                 .attr("height", diagramHeight)
-                .on('click', onBackgroundDiagramClick);
+                .on('click', onBackgroundDiagramClick) as any;
     
-    svgDefs = <any>svg.append("defs");
+    svgDefs = svg.append("defs") as any;
 
     svg.append("g") // first so it's not on top
 			.classed("hulls", true);

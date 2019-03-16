@@ -251,7 +251,7 @@ export function findIndex(arr: any[], callback: (arg: any) => boolean): number {
 }
 
 export function nodeTextShiftRight(d: Node, multiplier?: number) {
-    const shiftRight = (getRadius(d) + 12) * (multiplier || 1);
+    const shiftRight = (getRadius(d) + 1) * (multiplier || 1.5);
     return "translate("+shiftRight+",0)";
 }
 

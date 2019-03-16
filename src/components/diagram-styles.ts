@@ -18,12 +18,12 @@ const defaultSupaDupaPath = new Superformula()
 
 const nodeStateDefault: NodeStateProperties = { 
     className: "node-state-default", 
-    nodeTextShiftMultiplier: 1,
+    nodeTextShiftMultiplier: 1.5,
     shapeSuperformula: defaultSupaDupaPath
 };
 const nodeStateHighlight: NodeStateProperties = { 
     className: "node-state-highlight", 
-    nodeTextShiftMultiplier: 1.2,
+    nodeTextShiftMultiplier: 1.8,
     shapeSuperformula: new Superformula()
         .type(utils.defaultNodeSuperformulaType)
         .size((d) => { 
@@ -32,7 +32,7 @@ const nodeStateHighlight: NodeStateProperties = {
 };
 const nodeStateSearch: NodeStateProperties = { 
     className: "node-state-search", 
-    nodeTextShiftMultiplier: 1.2, 
+    nodeTextShiftMultiplier: 1.8, 
     shapeSuperformula: new Superformula()
         .type(() => "gear")
         .size((d) => { 
@@ -41,12 +41,12 @@ const nodeStateSearch: NodeStateProperties = {
 };
 const nodeStateHighlightNeighbour: NodeStateProperties = { 
     className: "node-state-highlight-neighbour", 
-    nodeTextShiftMultiplier: 1.1, 
+    nodeTextShiftMultiplier: 1.8, 
     shapeSuperformula: defaultSupaDupaPath
 };
 const nodeStateUnhighlighted: NodeStateProperties = { 
     className: "node-state-unhighlighted", 
-    nodeTextShiftMultiplier: 1, 
+    nodeTextShiftMultiplier: 1.6, 
     shapeSuperformula: defaultSupaDupaPath
 };
             
@@ -181,7 +181,7 @@ export class DiagramStyles {
             .tween("attr:transform", () => {
                 const nodeData = nodeEles.data()[0];
                 const shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier);
-                const shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.1);
+                const shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.3);
                 const i = d3.interpolateString(shiftFrom, shiftTo);
                 return (t: any) => { 
                     nodeText.attr("transform", i(t)); 
@@ -214,17 +214,19 @@ export class DiagramStyles {
             .tween("attr:transform", () => {
                 const nodeData = nodeEles.data()[0];
                 const shiftTo = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier);
-                const shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.1);
+                const shiftFrom = utils.nodeTextShiftRight(nodeData, nodeState.nodeTextShiftMultiplier * 1.3);
                 const i = d3.interpolateString(shiftFrom, shiftTo);
                 return (t: any) => { nodeText.attr("transform", i(t)); };
             });
         if (nodeText.classed("temp-show")) {
             nodeText.classed("temp-show", false);
-            mouseOutTransition
-                .tween("style:opacity", () => {
-                    const i = d3.interpolateNumber(1, 0);
-                    return (t: any) => { nodeText.style("opacity", i(t)); };
-                });
+            if (nodeState.className !== nodeStateHighlight.className) {
+                mouseOutTransition
+                    .tween("style:opacity", () => {
+                        const i = d3.interpolateNumber(1, 0);
+                        return (t: any) => { nodeText.style("opacity", i(t)); };
+                    });
+            }
         }
     }
 
