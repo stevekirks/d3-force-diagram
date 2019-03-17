@@ -354,7 +354,7 @@ function updateSimulation() {
                 .attr("transform", (d: Node) => {
                     d.x = isNaN(d.x!) || d.x === 0 ? diagramWidth / 2 : d.x!;
                     d.y = isNaN(d.y!) || d.y === 0 ? diagramHeight / 2 : d.y!;
-                    return "translate(" + d.x + "," + d.y + ")"
+                    return "translate(" + d.x + "," + d.y + ")";
                 });
         });
     simulation.force<d3.ForceLink<Node, Link>>('link')!.links(links);
