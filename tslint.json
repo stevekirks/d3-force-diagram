@@ -7,7 +7,11 @@
       "coverage/lcov-report/*.js"
     ]
   },
+  "rulesDirectory": [
+    "tslint-plugin-prettier"
+  ],
   "rules": {
+    "prettier": true,
     "ordered-imports": [false],
     "object-literal-sort-keys": [false],
     "interface-name" : [true, "never-prefix"]

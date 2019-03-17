@@ -1,36 +1,36 @@
-import { Superformula } from "./utils/superformula";
+import { Superformula } from './utils/superformula';
 
 export interface Node {
-    name?: string,
-    group?: string,
-    details?: { [key: string]: object },
-    notes?: string,
-    size?: number,
-    nodes?: Node[],
-    x?: number,
-    y?: number,
-    fx?: number | null,
-    fy?: number | null,
-    internalLinks?: Link[],
-    timestamp?: string
+  name?: string;
+  group?: string;
+  details?: { [key: string]: object };
+  notes?: string;
+  size?: number;
+  nodes?: Node[];
+  x?: number;
+  y?: number;
+  fx?: number | null;
+  fy?: number | null;
+  internalLinks?: Link[];
+  timestamp?: string;
 }
 
 export interface Link {
-    source: string | Node,
-    target: string | Node,
-    sourceChild?: string | Node,
-    targetChild?: string | Node,
-    details?: { [key: string]: object },
-    timestamp?: string
+  source: string | Node;
+  target: string | Node;
+  sourceChild?: string | Node;
+  targetChild?: string | Node;
+  details?: { [key: string]: object };
+  timestamp?: string;
 }
 
 export interface Hull {
-    group: string,
-    path: Array<[number, number]>
+  group: string;
+  path: Array<[number, number]>;
 }
 
 export interface NodeStateProperties {
-    className: string,
-    nodeTextShiftMultiplier: number;
-    shapeSuperformula: Superformula;
+  className: string;
+  nodeTextShiftMultiplier: number;
+  shapeSuperformula: Superformula;
 }
