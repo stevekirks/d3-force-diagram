@@ -180,7 +180,7 @@ function prepare() {
                     const combinedRadiuses: number = utils.getRadius(n1) + utils.getRadius(n2);
                     d = (utils.doGroupsMatch(n1, n2)
                         ? combinedRadiuses
-                        : combinedRadiuses * 5);
+                        : combinedRadiuses * 7);
                 }
                 return d;
             })
@@ -188,7 +188,7 @@ function prepare() {
                 const l = slDatum as Link;
                 let s: number = 0.3;
                 if (typeof l.source !== "string" && typeof l.target !== "string") {
-                    s = (utils.doGroupsMatch(l.source, l.target) ? 0.01 : 0.3);
+                    s = (utils.doGroupsMatch(l.source, l.target) ? 0.01 : 0.5);
                 }
                 return s;
             })
