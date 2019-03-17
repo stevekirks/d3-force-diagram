@@ -1,6 +1,6 @@
 # D3 Force Diagram
 
-Built using [Create-React-App](https://facebook.github.io/create-react-app/) [with Typescript](https://facebook.github.io/create-react-app/docs/adding-typescript) and [d3 v5](https://d3js.org/)
+Built using [Create-React-App](https://facebook.github.io/create-react-app/) with [Typescript](https://facebook.github.io/create-react-app/docs/adding-typescript) and [d3 v5](https://d3js.org/)
 
 ### Features
 -   node highlighting (type in search field or click one or more nodes)
