@@ -75,11 +75,8 @@ export function searchForNodes(searchText: string) {
 }
 
 export function showAllLabels(show: boolean) {
-    if (show === true) {
-        d3.selectAll('.node-text').style('opacity', 1);
-    } else {
-        highlightNodes();
-    }
+    diagramStyles.showAllLabels = show;
+    highlightNodes();
 }
 
 export function showOnlyHighlighted(show: boolean) {
@@ -326,7 +323,7 @@ function updateSimulation() {
                         const x1 = d.x - biggestNode.x;
                         const y1 = d.y - biggestNode.y;
                         const l = Math.sqrt(x1 * x1 + y1 * y1); // dist between node and biggest node
-                        const r = (utils.getRadius(d) * 1.6) + utils.getRadius(biggestNode); // ideal dist between node and biggest node
+                        const r = (utils.getRadius(d) * 2) + utils.getRadius(biggestNode); // ideal dist between node and biggest node
                         if (l !== r) {
                             // as decay falls from 1 to 0, set a mostly consistant multiplier with small peak
                             const alphaMultiplier = -0.9 * Math.pow(alpha - 1, 2) - 0.9 * (alpha - 1) + 0.7;

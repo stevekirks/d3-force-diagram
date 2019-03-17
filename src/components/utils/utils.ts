@@ -255,9 +255,9 @@ export function nodeTextShiftRight(d: Node, multiplier?: number) {
     return "translate("+shiftRight+",0)";
 }
 
-export function nodeTextOpacity(d: Node): number {
+export function nodeTextOpacity(d: Node, showAllLabels: boolean): number {
     let opacity = 0;
-    if (getRadius(d) >= 10) {
+    if (getRadius(d) >= 10 || showAllLabels) {
         opacity = 1;
     }
     return opacity;

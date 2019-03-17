@@ -54,6 +54,7 @@ export class DiagramStyles {
 
     public showOnlyHighlighted: boolean = false;
     public invertedBackground: boolean = false;
+    public showAllLabels: boolean = false;
     private mouseOverLock: any = {};
     private mouseOutLock: any = {};
 
@@ -71,7 +72,7 @@ export class DiagramStyles {
             .style("stroke-opacity", 1)
             .style("fill-opacity", 1);
         nodeText
-            .style("opacity", utils.nodeTextOpacity)
+            .style("opacity", (d: Node) => utils.nodeTextOpacity(d, this.showAllLabels))
             .attr("text-anchor", "right")
             .attr("dominant-baseline", "central")
             .attr("transform", (d: Node) => utils.nodeTextShiftRight(d))
@@ -158,7 +159,7 @@ export class DiagramStyles {
                 .style("fill-opacity", this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
         nodeText.transition()
                 .duration(durationLong)
-                .style("opacity", 0)
+                .style("opacity", (d: Node) => utils.nodeTextOpacity(d, this.showAllLabels))
                 .attr("transform", (d) => {
                     return utils.nodeTextShiftRight(d as Node);
                 });
