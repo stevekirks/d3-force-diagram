@@ -169,7 +169,7 @@ function prepare() {
   zoom = d3
     .zoom()
     .scaleExtent([0, 40])
-    .translateExtent([[0, 0], [diagramWidth, diagramHeight]])
+    .translateExtent([[0 - diagramWidth, 0 - diagramHeight], [diagramWidth * 2, diagramHeight * 2]])
     .on('zoom', zoomed);
 
   svg.call(zoom as any).on('dblclick.zoom', null); // disable double-click zoom
