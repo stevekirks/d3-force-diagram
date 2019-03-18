@@ -165,7 +165,7 @@ export class DiagramStyles {
     nodeText
       .transition()
       .duration(durationLong)
-      .style('opacity', (d: Node) => (this.showOnlyHighlighted ? 0 : utils.nodeTextOpacity(d, this.showAllLabels)))
+      .style('opacity', (d: Node) => (this.showOnlyHighlighted ? 0 : this.showAllLabels ? 1 : 0))
       .attr('transform', d => {
         return utils.nodeTextShiftRight(d as Node);
       });
