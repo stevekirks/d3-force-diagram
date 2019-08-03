@@ -1,5 +1,7 @@
 # D3 Force Diagram
 
+[Demo](https://stevekirks.github.io/d3-force-diagram)
+
 Built using [Create-React-App](https://facebook.github.io/create-react-app/) with [Typescript](https://facebook.github.io/create-react-app/docs/adding-typescript) and [d3 v5](https://d3js.org/)
 
 ### Features

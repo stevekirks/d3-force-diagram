@@ -11,9 +11,10 @@
     "tslint-plugin-prettier"
   ],
   "rules": {
-    "prettier": true,
+    "interface-name" : [true, "never-prefix"],
+    "no-console": false,
     "ordered-imports": [false],
     "object-literal-sort-keys": [false],
-    "interface-name" : [true, "never-prefix"]
+    "prettier": true
   }
 }
