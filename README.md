@@ -1,6 +1,6 @@
 <p align="right">
-  <a href="https://stevekirkegard.visualstudio.com/Public/_build/latest?definitionId=1&branchName=master">
-    <img src="https://stevekirkegard.visualstudio.com/Public/_apis/build/status/D3-force-diagram?branchName=master" alt="build" />
+  <a href="https://dev.azure.com/stevekirks/Public/_build/latest?definitionId=1&branchName=master">
+    <img src="https://dev.azure.com/stevekirks/Public/_apis/build/status/D3-force-diagram?branchName=master" alt="build" />
   </a>
 </p>
 
