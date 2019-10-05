@@ -2,6 +2,9 @@
   <a href="https://dev.azure.com/stevekirks/Public/_build/latest?definitionId=1&branchName=master">
     <img src="https://dev.azure.com/stevekirks/Public/_apis/build/status/D3-force-diagram?branchName=master" alt="build" />
   </a>
+  <a href="https://dev.azure.com/stevekirks/Public/_release?_a=releases&view=mine&definitionId=1">
+    <img src="https://vsrm.dev.azure.com/stevekirks/_apis/public/Release/badge/568d0664-714f-4ec5-8948-853530dfed39/1/1" alt="release" />
+  </a>
 </p>
 
 <h1 align="center">D3 Force Diagram | <a href="https://stevekirks.github.io/d3-force-diagram">Demo</a></h1>
