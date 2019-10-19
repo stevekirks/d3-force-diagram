@@ -47,10 +47,21 @@ path.hull {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: flex-end;
   align-items: center;
   align-content: center;
 }
+
+@media (min-width: 1200px) {
+  .config-box {
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 1200px) {
+  .config-box {
+    justify-content: flex-start;
+  }
+}
+
 .config-box div {
   display: inline;
 }
@@ -176,23 +187,38 @@ path.hull {
   min-height: 1px;
 }
 
-.col-4 {
-  -webkit-box-flex: 0;
-  -ms-flex: 0 0 33%;
-  flex: 0 0 33%;
-  max-width: 33%;
+@media (max-width: 1200px) {
+
+  .col-4, .col-6, .col-8 {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 95%;
+    flex: 0 0 95%;
+    max-width: 95%;
+  }
+
 }
 
-.col-6 {
-  -webkit-box-flex: 0;
-  -ms-flex: 0 0 49%;
-  flex: 0 0 49%;
-  max-width: 49%;
-}
+@media (min-width: 1200px) {
 
-.col-8 {
-  -webkit-box-flex: 0;
-  -ms-flex: 0 0 66%;
-  flex: 0 0 66%;
-  max-width: 66%;
+  .col-4 {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 33%;
+    flex: 0 0 33%;
+    max-width: 33%;
+  }
+
+  .col-6 {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 49%;
+    flex: 0 0 49%;
+    max-width: 49%;
+  }
+
+  .col-8 {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 66%;
+    flex: 0 0 66%;
+    max-width: 66%;
+  }
+
 }
