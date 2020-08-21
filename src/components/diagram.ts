@@ -22,7 +22,8 @@ export function load(
 
   // Load the data
   const dataUrl: string = process.env.REACT_APP_DATA_SERVICES_URL!;
-  d3.json(dataUrl).then((response: { nodes?: Node[]; links?: Link[] }) => {
+  d3.json(dataUrl).then((uResponse: unknown) => {
+    const response = uResponse as { nodes?: Node[]; links?: Link[] };
     nodes = response.nodes!;
     links = response.links!;
 
@@ -128,7 +129,7 @@ let hasForceSimulation: boolean = true;
 const diagramStyles = new DiagramStyles();
 
 // zooming
-let zoom: d3.ZoomBehavior<Element, {}>;
+let zoom: d3.ZoomBehavior<Element, unknown>;
 function zoomed() {
   svg.select('.links').attr('transform', d3.event.transform);
   svg.select('.nodes').attr('transform', d3.event.transform);
@@ -169,7 +170,10 @@ function prepare() {
   zoom = d3
     .zoom()
     .scaleExtent([0, 40])
-    .translateExtent([[0 - diagramWidth, 0 - diagramHeight], [diagramWidth * 2, diagramHeight * 2]])
+    .translateExtent([
+      [0 - diagramWidth, 0 - diagramHeight],
+      [diagramWidth * 2, diagramHeight * 2],
+    ])
     .on('zoom', zoomed);
 
   svg.call(zoom as any).on('dblclick.zoom', null); // disable double-click zoom
@@ -202,7 +206,10 @@ function prepare() {
           return s;
         })
     )
-    .force('collide', d3.forceCollide().radius((d: Node) => utils.getRadius(d) + 20))
+    .force(
+      'collide',
+      d3.forceCollide().radius((d: Node) => utils.getRadius(d) + 20)
+    )
     .force(
       'charge',
       d3
@@ -257,7 +264,7 @@ function updateSimulation() {
   nodeElements = svg
     .select('.nodes')
     .selectAll('.node')
-    .data(nodes, utils.getNodeId) as any;
+    .data(nodes, utils.getNodeId as any) as any;
 
   hullElements = svg
     .select('.hulls')

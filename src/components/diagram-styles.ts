@@ -62,18 +62,18 @@ export class DiagramStyles {
     const nodeText = nodeEles.selectAll('.node-text');
     nodeShape
       .transition(utils.transitionLinear(durationSecond))
-      .attr('d', (d: Node) => nodeStateDefault.shapeSuperformula.getPath(d))
-      .attr('stroke-width', (d: Node) => 1)
-      .attr('stroke', (d: Node) => constants.colorScale(utils.strToLowerOrEmpty(d.group)))
-      .attr('fill', (d: Node) => constants.colorScale(utils.strToLowerOrEmpty(d.group)))
+      .attr('d', (d: unknown) => nodeStateDefault.shapeSuperformula.getPath(d as Node))
+      .attr('stroke-width', (d: unknown) => 1)
+      .attr('stroke', (d: unknown) => constants.colorScale(utils.strToLowerOrEmpty((d as Node).group)))
+      .attr('fill', (d: unknown) => constants.colorScale(utils.strToLowerOrEmpty((d as Node).group)))
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1);
     nodeText
-      .style('opacity', (d: Node) => utils.nodeTextOpacity(d, this.showAllLabels))
+      .style('opacity', (d: unknown) => utils.nodeTextOpacity(d as Node, this.showAllLabels))
       .attr('text-anchor', 'right')
       .attr('dominant-baseline', 'central')
-      .attr('transform', (d: Node) => utils.nodeTextShiftRight(d))
-      .text((d: Node) => d.name || d.group || '');
+      .attr('transform', (d: unknown) => utils.nodeTextShiftRight(d as Node))
+      .text((d: unknown) => (d as Node).name || (d as Node).group || '');
   }
 
   public applyNodeSearch(nodeEles: d3.Selection<SVGGElement, Node, d3.BaseType, any>) {
@@ -85,26 +85,26 @@ export class DiagramStyles {
     nodeShape
       .transition()
       .duration(durationMediumLong)
-      .attr('d', (d: Node) =>
+      .attr('d', (d: unknown) =>
         bigSuperdupaPath
           .size(bd => {
             return 5 * utils.getHighlightedRadius(bd);
           })
-          .getPath(d)
+          .getPath(d as Node)
       )
-      .attr('stroke', (d: Node) => constants.highlightColor)
-      .attr('fill', (d: Node) => constants.highlightColor)
+      .attr('stroke', (d: unknown) => constants.highlightColor)
+      .attr('fill', (d: unknown) => constants.highlightColor)
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1)
       .transition()
       .duration(durationMedium)
-      .attr('d', (d: Node) => nodeStateSearch.shapeSuperformula.getPath(d));
+      .attr('d', (d: unknown) => nodeStateSearch.shapeSuperformula.getPath(d as Node));
     nodeText
       .transition()
       .duration(durationLong)
       .style('opacity', 1)
-      .attr('transform', (d: Node) => {
-        return utils.nodeTextShiftRight(d, nodeStateSearch.nodeTextShiftMultiplier);
+      .attr('transform', (d: unknown) => {
+        return utils.nodeTextShiftRight(d as Node, nodeStateSearch.nodeTextShiftMultiplier);
       });
   }
 
@@ -116,17 +116,17 @@ export class DiagramStyles {
     nodeShape
       .transition()
       .duration(durationMedium)
-      .attr('d', (d: Node) => nodeStateHighlight.shapeSuperformula.getPath(d))
-      .attr('stroke', (d: Node) => utils.darkenIfInvertedBackground(constants.highlightColor, this.invertedBackground))
-      .attr('fill', (d: Node) => utils.darkenIfInvertedBackground(constants.highlightColor, this.invertedBackground))
+      .attr('d', (d: unknown) => nodeStateHighlight.shapeSuperformula.getPath(d as Node))
+      .attr('stroke', () => utils.darkenIfInvertedBackground(constants.highlightColor, this.invertedBackground))
+      .attr('fill', () => utils.darkenIfInvertedBackground(constants.highlightColor, this.invertedBackground))
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1);
     nodeText
       .transition()
       .duration(durationLong)
       .style('opacity', 1)
-      .attr('transform', (d: Node) => {
-        return utils.nodeTextShiftRight(d, nodeStateHighlight.nodeTextShiftMultiplier);
+      .attr('transform', (d: unknown) => {
+        return utils.nodeTextShiftRight(d as Node, nodeStateHighlight.nodeTextShiftMultiplier);
       });
   }
 
@@ -138,9 +138,9 @@ export class DiagramStyles {
     nodeShape
       .transition()
       .duration(durationLong)
-      .attr('d', (d: Node) => nodeStateHighlightNeighbour.shapeSuperformula.getPath(d))
-      .attr('stroke', (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
-      .attr('fill', (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
+      .attr('d', (d: unknown) => nodeStateHighlightNeighbour.shapeSuperformula.getPath(d as Node))
+      .attr('stroke', () => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
+      .attr('fill', () => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1);
     nodeText
@@ -157,15 +157,15 @@ export class DiagramStyles {
     nodeShape
       .transition()
       .duration(durationLong)
-      .attr('d', (d: Node) => nodeStateUnhighlighted.shapeSuperformula.getPath(d))
-      .attr('stroke', (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
-      .attr('fill', (d: Node) => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
+      .attr('d', (d: unknown) => nodeStateUnhighlighted.shapeSuperformula.getPath(d as Node))
+      .attr('stroke', () => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
+      .attr('fill', () => utils.darkenIfInvertedBackground(constants.everythingElseColor, this.invertedBackground))
       .style('stroke-opacity', this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity)
       .style('fill-opacity', this.showOnlyHighlighted ? 0 : constants.everythingElseOpacity);
     nodeText
       .transition()
       .duration(durationLong)
-      .style('opacity', (d: Node) => (this.showOnlyHighlighted ? 0 : this.showAllLabels ? 1 : 0))
+      .style('opacity', () => (this.showOnlyHighlighted ? 0 : this.showAllLabels ? 1 : 0))
       .attr('transform', d => {
         return utils.nodeTextShiftRight(d as Node);
       });
