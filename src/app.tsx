@@ -1,7 +1,7 @@
 import './app.css';
 import './forms.css';
 import * as diagram from './diagram';
-import * as React from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { getUrlParameterAsArray, setUrlParameterAsArray, getUrlParameter, setUrlParameter } from './utils/url-query-param-utils';
 
 export interface AppState {
@@ -16,147 +16,131 @@ export interface AppState {
 const urlParamLabelShowOnlyHighlighted = 'showHlOnly';
 const urlParamLabelHighlightedNodes = 'hlNodes';
 
-export default class App extends React.Component<{}, AppState> {
-  constructor(props: {}) {
-    super(props);
+let initShowOnlyHighlighted = getUrlParameter(urlParamLabelShowOnlyHighlighted) === 'y';
+const initHighlightedNodeNames = getUrlParameterAsArray(urlParamLabelHighlightedNodes);
+if (initShowOnlyHighlighted && initHighlightedNodeNames.length === 0) {
+  setUrlParameter(urlParamLabelShowOnlyHighlighted, '');
+  initShowOnlyHighlighted = false;
+}
 
-    let showOnlyHighlighted = getUrlParameter(urlParamLabelShowOnlyHighlighted) === 'y';
-    const highlightedNodeNames = getUrlParameterAsArray(urlParamLabelHighlightedNodes);
-    if (showOnlyHighlighted && highlightedNodeNames.length === 0) {
-      setUrlParameter(urlParamLabelShowOnlyHighlighted, '');
-      showOnlyHighlighted = false;
-    }
+export default function App() {
+  
+  const [inputHighlightText, setInputHighlightText] = useState('');
+  const [showAllLabels, setShowAllLabels] = useState(false);
+  const [showOnlyHighlighted, setShowOnlyHighlighted] = useState(initShowOnlyHighlighted);
+  const [highlightedNodeNames, setHighlightedNodeNames] = useState(initHighlightedNodeNames);
+  const [invertBackground, setInvertBackground] = useState(false);
+  const [hasForceSimulation, setHasForceSimulation] = useState(true);
 
-    this.state = {
-      inputHighlightText: '',
-      showAllLabels: false,
-      showOnlyHighlighted,
-      highlightedNodeNames,
-      invertBackground: false,
-      hasForceSimulation: true,
-    };
+  useEffect(() => {
+    diagram.load(handleHighlightedNodesChanged, highlightedNodeNames, showOnlyHighlighted);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    this.handleInputHighlightText = this.handleInputHighlightText.bind(this);
-    this.handleShowAllLabels = this.handleShowAllLabels.bind(this);
-    this.handleShowOnlyHighlighted = this.handleShowOnlyHighlighted.bind(this);
-    this.handleHighlightedNodesChanged = this.handleHighlightedNodesChanged.bind(this);
-    this.updateShowAllLabels = this.updateShowAllLabels.bind(this);
-    this.updateInputHighlightText = this.updateInputHighlightText.bind(this);
-    this.handleInvertBackground = this.handleInvertBackground.bind(this);
-    this.handleHasForceSimulation = this.handleHasForceSimulation.bind(this);
-    this.handleSearchForNodesClick = this.handleSearchForNodesClick.bind(this);
+  const updateShowAllLabels = (pShowAllLabels: boolean) => {
+    setShowAllLabels(pShowAllLabels);
+    diagram.showAllLabels(pShowAllLabels);
   }
 
-  public componentDidMount() {
-    diagram.load(this.handleHighlightedNodesChanged, this.state.highlightedNodeNames, this.state.showOnlyHighlighted);
-  }
-
-  public render() {
-    return (
-      <div>
-        <div className="header row">
-          <h1 className="col-4">Service Registry Diagram</h1>
-          <div className="col-8 config-box">
-            <label className={this.state.showOnlyHighlighted ? 'disabled' : ''}>Search</label>
-            <input
-              name="inputSearch"
-              type="text"
-              onChange={this.handleInputHighlightText}
-              value={this.state.inputHighlightText}
-              disabled={this.state.showOnlyHighlighted}
-            />
-            <button id="btnHighlight" onClick={this.handleSearchForNodesClick} disabled={this.state.showOnlyHighlighted}>
-              Highlight
-            </button>
-            <input
-              id="chkboxShowAllLabels"
-              type="checkbox"
-              checked={this.state.showAllLabels}
-              onChange={this.handleShowAllLabels}
-              disabled={this.state.showOnlyHighlighted}
-            />
-            <label htmlFor="chkboxShowAllLabels">Show all labels</label>
-            <input
-              id="chkboxShowOnlyHighlighted"
-              type="checkbox"
-              checked={this.state.showOnlyHighlighted}
-              onChange={this.handleShowOnlyHighlighted}
-              disabled={this.state.highlightedNodeNames.length === 0}
-            />
-            <label htmlFor="chkboxShowOnlyHighlighted">Show only highlighted</label>
-            <input id="chkboxInvertBackground" type="checkbox" checked={this.state.invertBackground} onChange={this.handleInvertBackground} />
-            <label htmlFor="chkboxInvertBackground">Invert Background</label>
-            <input id="chkboxHasForceSimulation" type="checkbox" checked={this.state.hasForceSimulation} onChange={this.handleHasForceSimulation} />
-            <label htmlFor="chkboxHasForceSimulation">Force</label>
-          </div>
-        </div>
-
-        <div className="content">
-          <div id="diagram" className={this.state.invertBackground ? 'inverted' : ''} />
-          <div id="info-box">
-            <h2 className="title">Diagram</h2>
-            <div className="notes" />
-            <table className="table" />
-            <div className="timestamp" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  private updateShowAllLabels(showAllLabels: boolean) {
-    this.setState({ showAllLabels });
-    diagram.showAllLabels(showAllLabels);
-  }
-
-  private updateInputHighlightText(txt: string) {
-    this.setState({ inputHighlightText: txt });
+  const updateInputHighlightText = (txt: string) => {
+    setInputHighlightText(txt);
     diagram.searchForNodes(txt);
   }
 
-  private handleHighlightedNodesChanged(highlightedNodeNames: string[]) {
-    this.setState({ highlightedNodeNames });
-    setUrlParameterAsArray(urlParamLabelHighlightedNodes, highlightedNodeNames);
-    if (highlightedNodeNames.length === 0 && this.state.showOnlyHighlighted) {
-      this.setState({ showOnlyHighlighted: false });
+  const handleHighlightedNodesChanged = (pHighlightedNodeNames: string[]) => {
+    setHighlightedNodeNames(pHighlightedNodeNames);
+    setUrlParameterAsArray(urlParamLabelHighlightedNodes, pHighlightedNodeNames);
+    if (pHighlightedNodeNames.length === 0 && showOnlyHighlighted) {
+      setShowOnlyHighlighted(false);
       setUrlParameter(urlParamLabelShowOnlyHighlighted, '');
     }
   }
 
-  private handleSearchForNodesClick() {
-    diagram.searchForNodes(this.state.inputHighlightText);
+  const handleSearchForNodesClick = () => {
+    diagram.searchForNodes(inputHighlightText);
   }
 
-  private handleInputHighlightText(event: React.ChangeEvent<HTMLInputElement>) {
+  const handleInputHighlightText = (event: ChangeEvent<HTMLInputElement>) => {
     const newVal = event.currentTarget.value;
-    this.updateInputHighlightText(newVal);
+    updateInputHighlightText(newVal);
     event.preventDefault();
   }
 
-  private handleShowAllLabels(event: React.ChangeEvent<HTMLInputElement>) {
+  const handleShowAllLabels = (event: ChangeEvent<HTMLInputElement>) => {
     const newVal = event.currentTarget.checked;
-    this.updateShowAllLabels(newVal);
+    updateShowAllLabels(newVal);
   }
 
-  private handleShowOnlyHighlighted(event: React.ChangeEvent<HTMLInputElement>) {
+  const handleShowOnlyHighlighted = (event: ChangeEvent<HTMLInputElement>) => {
     const newVal = event.currentTarget.checked;
-    this.setState({ showOnlyHighlighted: newVal });
+    setShowOnlyHighlighted(newVal);
     setUrlParameter(urlParamLabelShowOnlyHighlighted, newVal ? 'y' : '');
     diagram.showOnlyHighlighted(newVal);
-    if (newVal === true && this.state.showAllLabels === true) {
-      this.updateShowAllLabels(false);
+    if (newVal === true && showAllLabels === true) {
+      updateShowAllLabels(false);
     }
   }
 
-  private handleInvertBackground(event: React.ChangeEvent<HTMLInputElement>) {
+  const handleInvertBackground = (event: ChangeEvent<HTMLInputElement>) => {
     const newVal = event.currentTarget.checked;
-    this.setState({ invertBackground: newVal });
+    setInvertBackground(newVal);
     diagram.invertBackground(newVal);
   }
 
-  private handleHasForceSimulation(event: React.ChangeEvent<HTMLInputElement>) {
+  const handleHasForceSimulation = (event: ChangeEvent<HTMLInputElement>) => {
     const newVal = event.currentTarget.checked;
-    this.setState({ hasForceSimulation: newVal });
+    setHasForceSimulation(newVal);
     diagram.setHasForceSimulation(newVal);
   }
+
+  return (
+    <div>
+      <div className="header row">
+        <h1 className="col-4">Service Registry Diagram</h1>
+        <div className="col-8 config-box">
+          <label className={showOnlyHighlighted ? 'disabled' : ''}>Search</label>
+          <input
+            name="inputSearch"
+            type="text"
+            onChange={handleInputHighlightText}
+            value={inputHighlightText}
+            disabled={showOnlyHighlighted}
+          />
+          <button id="btnHighlight" onClick={handleSearchForNodesClick} disabled={showOnlyHighlighted}>
+            Highlight
+          </button>
+          <input
+            id="chkboxShowAllLabels"
+            type="checkbox"
+            checked={showAllLabels}
+            onChange={handleShowAllLabels}
+            disabled={showOnlyHighlighted}
+          />
+          <label htmlFor="chkboxShowAllLabels">Show all labels</label>
+          <input
+            id="chkboxShowOnlyHighlighted"
+            type="checkbox"
+            checked={showOnlyHighlighted}
+            onChange={handleShowOnlyHighlighted}
+            disabled={highlightedNodeNames.length === 0}
+          />
+          <label htmlFor="chkboxShowOnlyHighlighted">Show only highlighted</label>
+          <input id="chkboxInvertBackground" type="checkbox" checked={invertBackground} onChange={handleInvertBackground} />
+          <label htmlFor="chkboxInvertBackground">Invert Background</label>
+          <input id="chkboxHasForceSimulation" type="checkbox" checked={hasForceSimulation} onChange={handleHasForceSimulation} />
+          <label htmlFor="chkboxHasForceSimulation">Force</label>
+        </div>
+      </div>
+
+      <div className="content">
+        <div id="diagram" className={invertBackground ? 'inverted' : ''} />
+        <div id="info-box">
+          <h2 className="title">Diagram</h2>
+          <div className="notes" />
+          <table className="table" />
+          <div className="timestamp" />
+        </div>
+      </div>
+    </div>
+  )
 }
