@@ -4,15 +4,6 @@ import * as diagram from './diagram';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { getUrlParameterAsArray, setUrlParameterAsArray, getUrlParameter, setUrlParameter } from './utils/url-query-param-utils';
 
-export interface AppState {
-  inputHighlightText: string;
-  showAllLabels: boolean;
-  showOnlyHighlighted: boolean;
-  highlightedNodeNames: string[];
-  invertBackground: boolean;
-  hasForceSimulation: boolean;
-}
-
 const urlParamLabelShowOnlyHighlighted = 'showHlOnly';
 const urlParamLabelHighlightedNodes = 'hlNodes';
 
