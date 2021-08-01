@@ -1,13 +1,7 @@
 import './index.css';
-import reportWebVitals from './reportWebVitals';
 import './forms.css';
 import * as diagram from './diagram';
 import { getUrlParameterAsArray, setUrlParameterAsArray, getUrlParameter, setUrlParameter } from './utils/url-query-param-utils';
-
-const clickme = () => {
-    console.log('blablabla');
-}
-(document.getElementById('btnHighlight') as HTMLButtonElement).onclick = clickme;
 
 const urlParamLabelShowOnlyHighlighted = 'showHlOnly';
 const urlParamLabelHighlightedNodes = 'hlNodes';
@@ -127,18 +121,12 @@ const initialiseApp = () => {
     setHasForceSimulation(hasForceSimulation);
 
     (document.getElementById('btnHighlight') as HTMLButtonElement).onclick = handleSearchForNodesClick;
-    (document.getElementById('inInputSearch') as HTMLInputElement).onchange = handleInputHighlightText;
+    (document.getElementById('inInputSearch') as HTMLInputElement).addEventListener('input', handleInputHighlightText);
     (document.getElementById('chkboxShowAllLabels') as HTMLInputElement).onchange = handleShowAllLabels;
     (document.getElementById('chkboxShowOnlyHighlighted') as HTMLInputElement).onchange = handleShowOnlyHighlighted;
-    //(document.getElementById('chkboxInvertBackground') as HTMLInputElement).onchange = handleInvertBackground;
-    (document.getElementById('chkboxInvertBackground') as HTMLInputElement).onclick = () => console.log('bla');
+    (document.getElementById('chkboxInvertBackground') as HTMLInputElement).onchange = handleInvertBackground;
     (document.getElementById('chkboxHasForceSimulation') as HTMLInputElement).onchange = handleHasForceSimulation;
     diagram.load(handleHighlightedNodesChanged, highlightedNodeNames, showOnlyHighlighted);
 }
 
 window.onload = initialiseApp;
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
