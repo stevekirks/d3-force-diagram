@@ -12,7 +12,6 @@ if (initShowOnlyHighlighted && initHighlightedNodeNames.length === 0) {
     setUrlParameter(urlParamLabelShowOnlyHighlighted, '');
     initShowOnlyHighlighted = false;
 }
-
 let inputHighlightText = '';
 let showAllLabels = false;
 let showOnlyHighlighted = initShowOnlyHighlighted;
@@ -32,8 +31,8 @@ const setShowAllLabels = (pShowAllLabels: boolean) => {
 
 const setShowOnlyHighlighted = (pShowOnlyHighlighted: boolean) => {
     showOnlyHighlighted = pShowOnlyHighlighted;
-    (document.getElementById('lblSearch') as HTMLLabelElement).className = pShowOnlyHighlighted ? 'disabled' : '';
-    (document.getElementById('inInputSearch') as HTMLInputElement).disabled = pShowOnlyHighlighted;
+    (document.getElementById('lblSearch') as HTMLLabelElement).className = pShowOnlyHighlighted ? 'disabled' : '';    
+    (document.getElementById('inInputSearch') as HTMLInputElement).disabled = pShowOnlyHighlighted;    
     (document.getElementById('btnHighlight') as HTMLButtonElement).disabled = pShowOnlyHighlighted;
     (document.getElementById('chkboxShowAllLabels') as HTMLInputElement).disabled = pShowOnlyHighlighted;
     (document.getElementById('chkboxShowOnlyHighlighted') as HTMLInputElement).checked = pShowOnlyHighlighted;
