@@ -1,3 +1,5 @@
+@import "variables.css";
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +12,228 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+
+html {
+  height: 100%;
+}
+
+body {
+background-color: #01031c;
+color: white;
+}
+
+.content {
+font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+display: -webkit-box;
+display: -ms-flexbox;
+display: flex;
+-ms-flex-wrap: wrap;
+flex-wrap: wrap;
+}
+
+h1 {
+font-family: sans-serif;
+}
+
+.node text {
+font-size: 8px;
+pointer-events: none;
+}
+.node .node-text {
+fill: var(--inputColorHighlight);
+stroke: var(--inputColorHighlight);
+stroke-width: 0px;
+font-size: 14px;
+font-weight: bold;
+font-style: normal;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+path.hull {
+fill: lightsteelblue;
+fill-opacity: 0.3;
+}
+
+.config-box {
+font-family: sans-serif;
+padding-left: 10px;
+display: flex;
+flex-direction: row;
+flex-wrap: wrap;
+align-items: center;
+align-content: center;
+}
+
+@media (min-width: 1200px) {
+.config-box {
+  justify-content: flex-end;
+}
+}
+@media (max-width: 1200px) {
+.config-box {
+  justify-content: flex-start;
+}
+}
+
+.config-box div {
+display: inline;
+}
+
+#diagram {
+position: relative;
+margin: 0;
+padding: 0;
+background-color: #090c26;
+overflow: hidden;
+}
+
+.inverted#diagram {
+background-color: var(--backgroundColorDefault);
+}
+.inverted .node-text {
+fill: var(--inputColorDefault);
+stroke: var(--inputColorDefault);
+}
+
+#info-box {
+width: 90%;
+height: 100%;
+padding: 10px;
+display: inline-block;
+vertical-align: middle;
+font-family: "Lucida Console", Sans-serif;
+}
+#info-box .notes {
+font-size: 16px;
+margin-bottom: 8px;
+}
+#info-box table {
+font-size: 18px;
+}
+#info-box table tr :first-child {
+color: #999;
+}
+#info-box .timestamp {
+font-size: 8px;
+color: #999;
+font-style: italic;
+margin-top: 5px;
+}
+
+.loading-info, .debug-info {
+position: absolute;
+top: 0;
+}
+
+@media (max-width: 80em) {
+#diagram {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 99%;
+  flex: 0 0 99%;
+  max-width: 99%;
+}
+
+#info-box {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 98%;
+  flex: 0 0 98%;
+  max-width: 98%;
+}
+}
+@media (min-width: 80em) {
+body {
+  overflow-y: hidden;
+}
+
+#diagram {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 78%;
+  flex: 0 0 78%;
+  max-width: 78%;
+}
+
+#info-box {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 19%;
+  flex: 0 0 19%;
+  max-width: 19%;
+}
+}
+@media (max-height: 800px) {
+#diagram {
+  height: 560px;
+}
+
+#info-box {
+  min-height: 10px;
+}
+}
+@media (min-height: 800px) and (max-height: 900px) {
+#diagram {
+  height: 760px;
+}
+
+#info-box {
+  height: 760px;
+}
+}
+@media (min-height: 900px) {
+#diagram {
+  height: 850px;
+}
+
+#info-box {
+  height: 850px;
+}
+}
+.row {
+display: -webkit-box;
+display: -ms-flexbox;
+display: flex;
+-ms-flex-wrap: wrap;
+flex-wrap: wrap;
+}
+
+.col-4, .col-6, .col-8 {
+position: relative;
+width: 100%;
+min-height: 1px;
+}
+
+@media (max-width: 1200px) {
+
+.col-4, .col-6, .col-8 {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 95%;
+  flex: 0 0 95%;
+  max-width: 95%;
+}
+
+}
+
+@media (min-width: 1200px) {
+
+.col-4 {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 33%;
+  flex: 0 0 33%;
+  max-width: 33%;
+}
+
+.col-6 {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 49%;
+  flex: 0 0 49%;
+  max-width: 49%;
+}
+
+.col-8 {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 66%;
+  flex: 0 0 66%;
+  max-width: 66%;
+}
+
 }
