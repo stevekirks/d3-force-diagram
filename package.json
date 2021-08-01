@@ -6,8 +6,7 @@
     "@types/d3": "^7.0.0",
     "@types/d3-scale-chromatic": "^3.0.0",
     "d3": "^7.0.0",
-    "d3-scale-chromatic": "^3.0.0",
-    "typescript": "^4.3.5"
+    "d3-scale-chromatic": "^3.0.0"
   },
   "browserslist": {
     "production": [
@@ -20,5 +19,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "typescript": "^4.3.5"
   }
 }
