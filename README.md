@@ -6,7 +6,7 @@
 
 <h1 align="center">D3 Force Diagram | <a href="https://stevekirks.github.io/d3-force-diagram">Demo</a></h1>
 
-Built using [Typescript](https://www.typescriptlang.org/) and [d3 v7](https://d3js.org/)
+Built in [Typescript](https://www.typescriptlang.org/) with [d3 v7](https://d3js.org/)
 
 ### Features
 -   node highlighting (type in search field or click one or more nodes)
@@ -15,11 +15,11 @@ Built using [Typescript](https://www.typescriptlang.org/) and [d3 v7](https://d3
 -   node hierarchy up to two levels in depth (double-click a node to explode or re-group)
 
 ### Usage
-Clone this repository, copy the ./public/data file to ./dist/data, then run
+Requires npm. Clone this repository, then run
 ```
-npx parcel ./public/index.html
+npm install
+npm run start
 ```
-Parcel builds the source files into the ./dist folder and runs a web server.
 
 ### Data format
-Sample data is stored in the `public/data` folder.
+Sample data is stored in the `public/data` folder and set in the `.env` file.
