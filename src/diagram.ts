@@ -19,7 +19,7 @@ export function load(
   d3.select('#diagram').append('h3').classed('loading-info', true).html("Loading. This shouldn't take more than a few seconds...");
 
   // Load the data
-  const dataUrl: string = process.env.REACT_APP_DATA_SERVICES_URL!;
+  const dataUrl: string = import.meta.env.VITE_DATA_SERVICES_URL!;
   d3.json(dataUrl).then((uResponse: unknown) => {
     const response = uResponse as { nodes?: Node[]; links?: Link[] };
     nodes = response.nodes!;
