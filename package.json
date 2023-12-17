@@ -1,26 +1,20 @@
 {
   "name": "d3-force-diagram",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "homepage": ".",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "@types/d3": "^7.0.0",
-    "@types/d3-scale-chromatic": "^3.0.0",
-    "d3": "^7.0.0",
+    "@types/d3": "^7.4.3",
+    "@types/d3-scale-chromatic": "^3.0.3",
+    "d3": "^7.8.5",
     "d3-scale-chromatic": "^3.0.0"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
-    "typescript": "^4.3.5"
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
   }
 }
