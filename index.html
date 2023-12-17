@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="D3 Force Diagram" />
+  <link rel="apple-touch-icon" href="/logo192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>D3 Force Diagram</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root">
+    <div>
+      <div class="header row">
+        <h1 class="col-4">Service Registry Diagram</h1>
+        <div class="col-8 config-box">
+          <label id="lblSearch" >Search</label>
+          <input id="inInputSearch" type="text" />
+          <button id="btnHighlight">
+            Highlight
+          </button>
+          <input id="chkboxShowAllLabels" type="checkbox" />
+          <label for="chkboxShowAllLabels">Show all labels</label>
+          <input id="chkboxShowOnlyHighlighted" type="checkbox" />
+          <label for="chkboxShowOnlyHighlighted">Show only highlighted</label>
+          <input id="chkboxInvertBackground" type="checkbox" />
+          <label for="chkboxInvertBackground">Invert Background</label>
+          <input id="chkboxHasForceSimulation" type="checkbox" />
+          <label for="chkboxHasForceSimulation">Force</label>
+        </div>
+      </div>
+
+      <div class="content">
+        <div id="diagram"></div>
+        <div id="info-box">
+          <h2 class="title">Diagram</h2>
+          <div class="notes"></div>
+          <table class="table"></table>
+          <div class="timestamp"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/index.ts"></script>
+</body>
+
+</html>

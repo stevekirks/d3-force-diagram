@@ -14,7 +14,7 @@ jobs:
       
       - name: Install and Build
         env:
-          REACT_APP_DATA_SERVICES_URL: "data/services.json"
+          VITE_DATA_SERVICES_URL: "data/services.json"
         run: |
           npm install
           npm run build
